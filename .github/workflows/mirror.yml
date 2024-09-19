@@ -2,7 +2,8 @@ name: repo_mirroring
 
 on:
   push:
-    branches: main
+    branches:
+      - '**'  # This will trigger the workflow for all branches
 
 jobs:
   to_gitlab:
@@ -11,10 +12,14 @@ jobs:
     steps:
       - uses: actions/checkout@v2
         with:
-          fetch-depth: 0
-      - uses: pixta-dev/repository-mirroring-action@v1
-        with:
-          target_repo_url:
-            git@github.com:EpitechPromo2027/B-DEV-500-BER-5-1-area-etienne.namur.git
-          ssh_private_key:
-            ${{ secrets.GIT_SSH_PRIVATE_KEY }}
+          fetch-depth: 0  # Fetch all branches
+
+      - name: Mirror branches
+        run: |
+          git remote add target git@github.com:EpitechPromo2027/B-DEV-500-BER-5-1-area-etienne.namur.git
+          git push target --all  # Push all branches
+          git push target --tags  # Push all tags (if you want to mirror tags as well)
+
+      - name: Clean up
+        run: |
+          git remote remove target
