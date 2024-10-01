@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-// Container used for wrapping the login and register pages
 class AuthContainer extends StatelessWidget {
   final Widget child;
 
@@ -8,28 +7,25 @@ class AuthContainer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: Container(
-        width: 800,
-        padding: const EdgeInsets.all(25),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(20),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.1),
-              blurRadius: 10,
-              offset: const Offset(0, 5),
-            ),
-          ],
-        ),
-        child: SingleChildScrollView(child: child),
+    return Container(
+      width: 400,
+      padding: const EdgeInsets.all(25),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 10,
+            offset: const Offset(0, 5),
+          ),
+        ],
       ),
+      child: child,
     );
   }
 }
 
-// Reusable Social Login Buttons
 class SocialLoginButtons extends StatelessWidget {
   const SocialLoginButtons({super.key});
 
@@ -86,7 +82,6 @@ class SocialLoginButtons extends StatelessWidget {
   }
 }
 
-// Login Button
 class LoginButton extends StatelessWidget {
   const LoginButton({super.key});
 
@@ -114,7 +109,6 @@ class LoginButton extends StatelessWidget {
   }
 }
 
-// Register Link
 class RegisterLink extends StatelessWidget {
   const RegisterLink({super.key});
 
@@ -138,7 +132,6 @@ class RegisterLink extends StatelessWidget {
   }
 }
 
-// Register Button (Optional for Register Page)
 class RegisterButton extends StatelessWidget {
   const RegisterButton({super.key});
 
