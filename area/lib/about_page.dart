@@ -43,9 +43,3 @@ class AboutPage extends StatelessWidget {
     );
   }
 }
-
-void main() {
-  runApp(MaterialApp(
-    home: AboutPage(),
-  ));
-}
