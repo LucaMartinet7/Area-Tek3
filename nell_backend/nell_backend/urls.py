@@ -3,6 +3,7 @@ from django.urls import path, include
 from rest_framework import permissions
 from drf_yasg.views import get_schema_view
 from drf_yasg import openapi
+from nell_backend import views
 
 schema_view = get_schema_view(
    openapi.Info(
@@ -26,4 +27,9 @@ urlpatterns = [
 
     # Include allauth URLs for social logins
     path('accounts/', include('allauth.urls')),
+
+    path('spotify/search/', views.spotify_search, name='spotify_search'),
+    path('deezer/search/', views.deezer_search, name='deezer_search'),
+    
+    path('weather/', views.get_weather_by_city, name='get_weather_by_city'),
 ]
