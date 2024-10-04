@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'shared/login_form.dart';
 import 'shared/register_form.dart';
-import 'dashboard_page.dart';
+import 'shared/dashboard_page.dart';
 import 'settings_page.dart';
 import 'about_page.dart';
 
@@ -19,7 +19,7 @@ class MyApp extends StatelessWidget {
       routes: {
         '/login': (context) => const LoginPage(),
         '/register': (context) => const RegisterPage(),
-        '/dashboard': (context) => DashboardPage(),
+        '/dashboard': (context) => const DashboardPage(),
         '/settings': (context) => SettingsPage(),
         '/about': (context) => AboutPage(),
       },

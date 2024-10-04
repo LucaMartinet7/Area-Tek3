@@ -1,6 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'shared/service_box.dart';
+import '../shared/service_box.dart';
 
 class Service {
   final String name;
@@ -10,8 +10,8 @@ class Service {
   Service(this.name, this.logoPath, this.isConnected);
 }
 
-class DashboardPage extends StatelessWidget {
-  const DashboardPage({super.key});
+class WebDashboard extends StatelessWidget {
+  const WebDashboard({super.key});
 
   @override
   Widget build(BuildContext context) {
