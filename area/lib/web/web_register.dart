@@ -1,9 +1,18 @@
 import 'package:flutter/material.dart';
-import '../shared/shared_widgets.dart';   // Import shared widgets like SocialLoginButtons
-import '../shared/forms_field.dart';      // Import form fields like NameField, EmailField, PasswordField
+import '../shared/shared_widgets.dart';
+import '../shared/forms_field.dart';
 
-class WebRegister extends StatelessWidget {
+class WebRegister extends StatefulWidget {
   const WebRegister({super.key});
+
+  @override
+  WebRegisterState createState() => WebRegisterState();
+}
+
+class WebRegisterState extends State<WebRegister> {
+  final TextEditingController _nameController = TextEditingController();
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
@@ -16,11 +25,11 @@ class WebRegister extends StatelessWidget {
           width: 800,
           height: 600,
           child: InfoContainer(
-            child: const AuthContainer(
+            child: AuthContainer(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Text(
+                  const Text(
                     "Register",
                     style: TextStyle(
                       color: Colors.black,
@@ -28,20 +37,26 @@ class WebRegister extends StatelessWidget {
                       fontWeight: FontWeight.bold,
                     ),
                   ),
-                    SizedBox(height: 20),
-                    NameField(),
-                    SizedBox(height: 20),
-                    EmailField(),
-                    SizedBox(height: 20),
-                    PasswordField(),
-                    SizedBox(height: 20),
-                    SocialLoginButtons(),
-                    SizedBox(height: 20),
-                    RegisterButton(),
-                  ],
-                ),
+                  const SizedBox(height: 20),
+                  NameField(controller: _nameController),
+                  const SizedBox(height: 20),
+                  EmailField(controller: _emailController),
+                  const SizedBox(height: 20),
+                  PasswordField(controller: _passwordController),
+                  const SizedBox(height: 20),
+                  const SocialLoginButtons(),
+                  const SizedBox(height: 20),
+                  RegisterButton(
+                    nameController: _nameController,
+                    emailController: _emailController,
+                    passwordController: _passwordController,
+                  ),
+                  const SizedBox(height: 20),
+                  const LoginLink(),
+                ],
               ),
             ),
+          ),
         ),
       ),
     );
