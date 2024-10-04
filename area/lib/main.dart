@@ -21,6 +21,13 @@ class MyApp extends StatelessWidget {
         '/register': (context) => const RegisterPage(),
         '/dashboard': (context) => const DashboardPage(),
         '/settings': (context) => SettingsPage(),
+        // '/logout': (context) => LogoutPage(),
+        // '/account': (context) => AccountPage(),
+        // '/spotify': (context) => SpotifyPage(),
+        // '/twitch': (context) => TwitchPage(),
+        // '/google': (context) => GooglePage(),
+        // '/deezer': (context) => DeezerPage(),
+        // '/microsoft': (context) => MicrosoftPage(),
         '/about': (context) => AboutPage(),
       },
     );
