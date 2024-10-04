@@ -16,8 +16,8 @@ class MobileNavBar extends StatelessWidget {
           label: 'Dashboard',
         ),
         BottomNavigationBarItem(
-          icon: Icon(Icons.login),
-          label: 'Login/Register',
+          icon: Icon(Icons.account_circle),
+          label: 'Account',
         )
       ],
       onTap: (index) {
