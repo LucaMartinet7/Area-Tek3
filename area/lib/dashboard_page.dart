@@ -1,6 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'service_box.dart';
+import 'shared/service_box.dart';
 
 class Service {
   final String name;

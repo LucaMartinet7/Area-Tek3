@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'login_form.dart';
-import 'register_page.dart';
+import 'shared/login_form.dart';
+import 'shared/register_form.dart';
 import 'dashboard_page.dart';
 import 'settings_page.dart';
 import 'about_page.dart';
