@@ -4,11 +4,13 @@ class ServiceBox extends StatelessWidget {
   final String logoPath;
   final bool isConnected;
   final VoidCallback onConnect;
+  final String serviceName;
 
   const ServiceBox({
     required this.logoPath,
     required this.isConnected,
     required this.onConnect,
+    required this.serviceName,
     super.key,
   });
 
@@ -17,7 +19,7 @@ class ServiceBox extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(8.0),
       height: 150,
-      decoration: _boxDecoration(),
+      decoration: _boxDecoration(serviceName),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
@@ -42,10 +44,33 @@ class ServiceBox extends StatelessWidget {
     );
   }
 
-  BoxDecoration _boxDecoration() {
+  BoxDecoration _boxDecoration(String serviceName) {
+    Color borderColor;
+
+    switch (serviceName) {
+      case 'Spotify':
+        borderColor = const Color(0xFF1DB954);
+        break;
+      case 'Twitch':
+        borderColor = const Color(0xFF9146FF);
+        break;
+      case 'Google':
+        borderColor = Colors.blue;
+        break;
+      case 'Deezer':
+        borderColor = const Color(0xFFFF0000);
+        break;
+      case 'Microsoft':
+        borderColor = Colors.orange;
+        break;
+      default:
+        borderColor = Colors.grey;
+    }
+
     return BoxDecoration(
       color: Colors.white,
       borderRadius: BorderRadius.circular(10),
+      border: Border.all(color: borderColor, width: 5),
       boxShadow: [
         BoxShadow(
           color: Colors.grey.withOpacity(0.5),

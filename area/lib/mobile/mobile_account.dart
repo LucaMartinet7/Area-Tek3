@@ -84,6 +84,7 @@ class MobileAccount extends StatelessWidget {
                       child: ServiceBox(
                         logoPath: service.logoPath,
                         isConnected: service.isConnected,
+                        serviceName: service.name,
                         onConnect: () => handleConnect(service.name),
                       ),
                     ),
