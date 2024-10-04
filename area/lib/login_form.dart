@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import 'shared_widgets.dart';   // Import shared widgets like SocialLoginButtons
-import 'forms_field.dart';      // Import form fields like EmailField and PasswordField
+import 'platform_conditions.dart';
+import 'web_login.dart';
+import 'mobile_login.dart';
 
 class LoginPage extends StatelessWidget {
   const LoginPage({super.key});
@@ -9,38 +10,26 @@ class LoginPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        title: const Text(""),
         automaticallyImplyLeading: false,
       ),
       body: Center(
         child: SizedBox(
-          width: 800,
-          height: 600,
-          child: InfoContainer(
-            child: const AuthContainer(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    "Login",
-                    style: TextStyle(
-                      color: Colors.black,
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                    ),
+          width: isMobile() ? double.infinity : 800,
+          height: isMobile() ? double.infinity : 600,
+          child: Stack(
+            children: [
+              Positioned.fill(
+                child: Container(
+                  padding: const EdgeInsets.all(20.0),
+                  decoration: BoxDecoration(
+                    color: const Color.fromARGB(255, 140, 211, 255),
+                    borderRadius: BorderRadius.circular(20),
                   ),
-                  SizedBox(height: 20),
-                  EmailField(),
-                  SizedBox(height: 20),
-                  PasswordField(),
-                  SizedBox(height: 20),
-                  SocialLoginButtons(),
-                  SizedBox(height: 20),
-                  LoginButton(),
-                  SizedBox(height: 20),
-                  RegisterLink(),
-                ],
+                  child: isMobile() ? const MobileLogin() : const WebLogin(),
+                ),
               ),
-            ),
+            ],
           ),
         ),
       ),
