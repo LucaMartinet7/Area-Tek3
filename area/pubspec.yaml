@@ -20,7 +20,7 @@ dev_dependencies:
 flutter:
   uses-material-design: true
   fonts:
-    - family: Clashgrotesk
+    - family: ClashGrotesk
       fonts:
         - asset: assets/fonts/ClashGrotesk-Variable.ttf
   assets:
@@ -29,3 +29,7 @@ flutter:
     - assets/images/google.png
     - assets/images/github.png
     - assets/images/facebook.png
+    - assets/images/spotify.png
+    - assets/images/twitch.png
+    - assets/images/deezer.png
+    - assets/images/microsoft.png

@@ -1,0 +1,41 @@
+# Python
+*.pyc
+*.pyo
+*.pyd
+__pycache__/
+*.pyo
+*.pyd
+*.whl
+*.egg-info/
+.eggs/
+
+# Virtual Environment
+venv/
+env/
+
+# Django files
+*.log
+db.sqlite3
+*.pot
+*.mo
+
+# Secrets and Config
+.env
+
+# PyCharm
+.idea/
+
+# VSCode
+.vscode/
+
+# Docker
+*.pid
+mysql_data/
+docker-compose.yml
+my.cnf
+=======
+.vscode
+area/ios
+area/linux
+area/macos
+area/windows
