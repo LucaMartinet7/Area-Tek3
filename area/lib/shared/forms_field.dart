@@ -4,91 +4,90 @@ import '../validation_utils.dart'; // Import the validation utility
 class CustomTextField extends StatelessWidget {
   final TextEditingController controller;
   final String labelText;
-  final bool isPassword;
   final String? Function(String?)? validator;
+  final String? name;
 
   const CustomTextField({
+    super.key,
     required this.controller,
     required this.labelText,
-    this.isPassword = false,
     this.validator,
-    super.key,
+    this.name,
   });
 
   @override
   Widget build(BuildContext context) {
     return TextFormField(
       controller: controller,
-      obscureText: isPassword,
       decoration: InputDecoration(
         labelText: labelText,
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(10),
+        hintText: labelText,
+        errorBorder: OutlineInputBorder(
+          borderSide: BorderSide(color: Colors.red, width: 2.0),
+        ),
+        focusedErrorBorder: OutlineInputBorder(
+          borderSide: BorderSide(color: Colors.red, width: 2.0),
         ),
       ),
-      autovalidateMode: AutovalidateMode.onUserInteraction,
       validator: validator,
+      autofillHints: name != null ? [name!] : null,
     );
   }
 }
 
 class EmailField extends StatefulWidget {
-  const EmailField({super.key});
+  final TextEditingController controller;
+  const EmailField({required this.controller, super.key});
 
   @override
   EmailFieldState createState() => EmailFieldState();
 }
 
 class EmailFieldState extends State<EmailField> {
-  final TextEditingController _controller = TextEditingController();
-
   @override
   Widget build(BuildContext context) {
     return CustomTextField(
-      controller: _controller,
+      controller: widget.controller,
       labelText: "Email",
       validator: (value) => isValidEmail(value ?? "") ? null : "Please enter a valid email",
+      name: 'email',
     );
   }
 }
 
-class PasswordField extends StatefulWidget {
-  const PasswordField({super.key});
+class PasswordField extends StatelessWidget {
+  final TextEditingController controller;
 
-  @override
-  PasswordFieldState createState() => PasswordFieldState();
-}
-
-class PasswordFieldState extends State<PasswordField> {
-  final TextEditingController _controller = TextEditingController();
+  const PasswordField({super.key, required this.controller});
 
   @override
   Widget build(BuildContext context) {
-    return CustomTextField(
-      controller: _controller,
-      labelText: "Password",
-      isPassword: true,
-      validator: (value) => value == null || value.isEmpty ? "Password can't be empty" : null,
+    return TextFormField(
+      controller: controller,
+      decoration: const InputDecoration(
+        labelText: 'Password',
+        hintText: 'Enter your password',
+      ),
+      obscureText: true,
+      autofillHints: const [AutofillHints.password],
     );
   }
 }
 
-class NameField extends StatefulWidget {
-  const NameField({super.key});
+class NameField extends StatelessWidget {
+  final TextEditingController controller;
 
-  @override
-  NameFieldState createState() => NameFieldState();
-}
-
-class NameFieldState extends State<NameField> {
-  final TextEditingController _controller = TextEditingController();
+  const NameField({super.key, required this.controller});
 
   @override
   Widget build(BuildContext context) {
-    return CustomTextField(
-      controller: _controller,
-      labelText: "Name",
-      validator: (value) => value == null || value.isEmpty ? "Name can't be empty" : null,
+    return TextFormField(
+      controller: controller,
+      decoration: const InputDecoration(
+        labelText: 'Username',
+        hintText: 'Enter your username',
+      ),
+      autofillHints: const [AutofillHints.username],
     );
   }
 }

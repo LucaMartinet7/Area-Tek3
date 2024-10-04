@@ -1,10 +1,18 @@
 import 'package:flutter/material.dart';
-import '../shared/forms_field.dart'; // Import form fields like NameField, EmailField, PasswordField
-import '../shared/shared_widgets.dart'; // Import shared widgets like SocialLoginButtons
-import 'mobile_nav_bar.dart'; // Import the MobileNavBar
+import '../shared/forms_field.dart';
+import '../shared/shared_widgets.dart';
 
-class MobileRegister extends StatelessWidget {
+class MobileRegister extends StatefulWidget {
   const MobileRegister({super.key});
+
+  @override
+  MobileRegisterState createState() => MobileRegisterState();
+}
+
+class MobileRegisterState extends State<MobileRegister> {
+  final TextEditingController _nameController = TextEditingController();
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
@@ -18,24 +26,23 @@ class MobileRegister extends StatelessWidget {
           child: Container(
             decoration: BoxDecoration(
               border: Border.all(
-                color: const Color.fromARGB(255, 140, 211, 255), // Blue border color
-                width: 15.0, // Border width
+                color: const Color.fromARGB(255, 140, 211, 255),
+                width: 15.0,
               ),
-              borderRadius: BorderRadius.circular(30), // More rounded border
+              borderRadius: BorderRadius.circular(30),
             ),
             child: ClipRRect(
-              borderRadius: BorderRadius.circular(25), // Slightly smaller radius for inner clipping
+              borderRadius: BorderRadius.circular(25),
               child: Container(
                 padding: const EdgeInsets.all(20.0),
-                color: Colors.white, // Set the background color to white
+                color: Colors.white,
                 constraints: const BoxConstraints(
                   maxWidth: 400,
-                  maxHeight: 600,
                 ),
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
-                  children: const [
-                    Text(
+                  children: [
+                    const Text(
                       "Register",
                       style: TextStyle(
                         color: Colors.black,
@@ -43,17 +50,20 @@ class MobileRegister extends StatelessWidget {
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                    SizedBox(height: 20),
-                    NameField(),
-                    SizedBox(height: 20),
-                    EmailField(),
-                    SizedBox(height: 20),
-                    PasswordField(),
-                    SizedBox(height: 20),
-                    SocialLoginButtons(),
-                    SizedBox(height: 20),
-                    RegisterButton(),
-                    SizedBox(height: 20),
+                    const SizedBox(height: 20),
+                    NameField(controller: _nameController),
+                    const SizedBox(height: 20),
+                    EmailField(controller: _emailController),
+                    const SizedBox(height: 20),
+                    PasswordField(controller: _passwordController),
+                    const SizedBox(height: 20),
+                    const SocialLoginButtons(),
+                    const SizedBox(height: 20),
+                    RegisterButton(
+                      nameController: _nameController,
+                      emailController: _emailController,
+                      passwordController: _passwordController,
+                    ),
                   ],
                 ),
               ),
@@ -61,7 +71,6 @@ class MobileRegister extends StatelessWidget {
           ),
         ),
       ),
-      bottomNavigationBar: const MobileNavBar(),
     );
   }
 }
