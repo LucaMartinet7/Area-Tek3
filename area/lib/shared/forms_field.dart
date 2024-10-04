@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'validation_utils.dart'; // Import the validation utility
+import '../validation_utils.dart'; // Import the validation utility
 
 class CustomTextField extends StatelessWidget {
   final TextEditingController controller;

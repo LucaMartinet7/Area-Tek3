@@ -1,30 +1,23 @@
 import 'package:flutter/material.dart';
-import 'forms_field.dart'; // Import form fields like EmailField and PasswordField
-import 'shared_widgets.dart'; // Import shared widgets like SocialLoginButtons
+import '../shared/forms_field.dart'; // Import form fields like EmailField and PasswordField
+import '../shared/shared_widgets.dart'; // Import shared widgets like SocialLoginButtons
 
-class WebLogin extends StatelessWidget {
-  const WebLogin({super.key});
+class MobileLogin extends StatelessWidget {
+  const MobileLogin({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Expanded(
-          child: Container(
-            padding: const EdgeInsets.all(20.0),
-            child: const Text(
-              "Connect your favourite apps and automate workflows.",
-              style: TextStyle(
-                color: Colors.black,
-                fontSize: 45,
-                fontWeight: FontWeight.bold,
-              ),
-              textAlign: TextAlign.left,
-            ),
+    return Center(
+      child: SizedBox(
+        width: 350,
+        height: 500,
+        child: Container(
+          padding: const EdgeInsets.all(20.0),
+          decoration: BoxDecoration(
+            color: const Color.fromARGB(255, 140, 211, 255),
+            borderRadius: BorderRadius.circular(20),
           ),
-        ),
-        const Expanded(
-          child: AuthContainer(
+          child: const AuthContainer(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
@@ -50,7 +43,7 @@ class WebLogin extends StatelessWidget {
             ),
           ),
         ),
-      ],
+      ),
     );
   }
 }
