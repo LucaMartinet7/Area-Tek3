@@ -34,6 +34,16 @@ MICROSOFT_REDIRECT_URI = config('MICROSOFT_REDIRECT_URI')
 MICROSOFT_AUTHORITY = config('MICROSOFT_AUTHORITY')
 MICROSOFT_SCOPE = config('MICROSOFT_SCOPE', cast=lambda v: [s.strip() for s in v.split(',')])
 
+YOUTUBE_CLIENT_ID = config('YOUTUBE_CLIENT_ID')
+YOUTUBE_CLIENT_SECRET = config('YOUTUBE_CLIENT_SECRET')
+YOUTUBE_REDIRECT_URI = config('YOUTUBE_REDIRECT_URI')
+YOUTUBE_SCOPES = config('YOUTUBE_SCOPES').split(',')
+
+TWITCH_CLIENT_ID=config('TWITCH_CLIENT_ID')
+TWITCH_CLIENT_SECRET=config('TWITCH_CLIENT_SECRET')
+TWITCH_REDIRECT_URI=config('TWITCH_REDIRECT_URI')
+TWITCH_SCOPES = config('TWITCH_SCOPES')
+
 REST_USE_JWT = True
 
 INSTALLED_APPS = [
@@ -48,6 +58,9 @@ INSTALLED_APPS = [
     'authentication',
     'spotify',
     'open_weather',
+    'microsoft',
+    'twitch',
+    'youtube',
     'drf_yasg',
     'django.contrib.sites',
     'allauth',
