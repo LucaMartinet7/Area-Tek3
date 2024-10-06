@@ -22,6 +22,7 @@ urlpatterns = [
     path('api/auth/', include('authentication.urls')),
     path('api/spotify/', include('spotify.urls')),
     path('api/open_weather/', include('open_weather.urls')),
+    path('api/microsoft/', include('microsoft.urls')),
 
     path('swagger/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
     path('redoc/', schema_view.with_ui('redoc', cache_timeout=0), name='schema-redoc'),
