@@ -14,7 +14,7 @@ class WebNavBar extends StatelessWidget implements PreferredSizeWidget {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: <Widget>[
-                _buildNavButton(context, 'assets/vectors/account.png', '/account'),
+                _buildNavButton(context, 'assets/vectors/account.png', '/dashboard'),
                 _buildNavButton(context, 'assets/vectors/spotify.png', '/spotify'),
                 _buildNavButton(context, 'assets/vectors/twitch.png', '/twitch'),
                 _buildNavButton(context, 'assets/vectors/google.png', '/google'),
