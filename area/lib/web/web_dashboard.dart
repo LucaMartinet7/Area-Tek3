@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'service_box.dart';
+import '../shared/service_box.dart';
+import 'web_nav_bar.dart'; // Import the new WebNavBar
 
 class Service {
   final String name;
@@ -10,8 +11,8 @@ class Service {
   Service(this.name, this.logoPath, this.isConnected);
 }
 
-class DashboardPage extends StatelessWidget {
-  const DashboardPage({super.key});
+class WebDashboard extends StatelessWidget {
+  const WebDashboard({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -19,7 +20,7 @@ class DashboardPage extends StatelessWidget {
       Service('Spotify', 'assets/images/spotify.png', true),
       Service('Twitch', 'assets/images/twitch.png', false),
       Service('Google', 'assets/images/google.png', true),
-      Service('YouTube', 'assets/images/deezer.png', false),
+      Service('Deezer', 'assets/images/deezer.png', false),
       Service('Microsoft', 'assets/images/microsoft.png', true),
     ];
 
@@ -30,7 +31,7 @@ class DashboardPage extends StatelessWidget {
     }
 
     return Scaffold(
-      appBar: _buildAppBar(context),
+      appBar: const WebNavBar(), // Use the WebNavBar
       body: Center(
         child: Padding(
           padding: const EdgeInsets.all(16.0),
@@ -47,33 +48,11 @@ class DashboardPage extends StatelessWidget {
     );
   }
 
-  AppBar _buildAppBar(BuildContext context) {
-    return AppBar(
-      backgroundColor: Colors.black,
-      title: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: <Widget>[
-          _buildNavButton(context, 'Settings', '/settings'),
-          _buildNavButton(context, 'About', '/about'),
-        ],
-      ),
-      centerTitle: true,
-    );
-  }
-
-  Widget _buildNavButton(BuildContext context, String label, String route) {
-    return TextButton(
-      onPressed: () => Navigator.pushNamed(context, route),
-      child: Text(label, style: const TextStyle(color: Colors.white)),
-    );
-  }
-
   Widget _buildProfile() {
     return Expanded(
       flex: 1,
       child: Container(
         padding: const EdgeInsets.all(16.0),
-        margin: const EdgeInsets.only(top: 50),
         decoration: _boxDecoration(),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -102,18 +81,16 @@ class DashboardPage extends StatelessWidget {
       List<Service> services, void Function(String) handleConnect) {
     return Expanded(
       flex: 1,
-      child: Container(
-        margin: const EdgeInsets.only(top: 50),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          children: services
-              .map((service) => ServiceBox(
-                    logoPath: service.logoPath,
-                    isConnected: service.isConnected,
-                    onConnect: () => handleConnect(service.name),
-                  ))
-              .toList(),
-        ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: services
+            .map((service) => ServiceBox(
+                  logoPath: service.logoPath,
+                  isConnected: service.isConnected,
+                  onConnect: () => handleConnect(service.name),
+                  serviceName: service.name, // Pass the service name
+                ))
+            .toList(),
       ),
     );
   }

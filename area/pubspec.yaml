@@ -11,6 +11,8 @@ dependencies:
     sdk: flutter
   flutter_login: ^5.0.0
   google_fonts: ^6.2.1
+  http: ^1.2.2
+  url_launcher: ^6.0.20
 
 dev_dependencies:
   flutter_test:
@@ -33,3 +35,4 @@ flutter:
     - assets/images/twitch.png
     - assets/images/deezer.png
     - assets/images/microsoft.png
+    - assets/vectors/

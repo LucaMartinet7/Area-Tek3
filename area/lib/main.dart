@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
-import 'login_form.dart';
-import 'register_page.dart';
-import 'dashboard_page.dart';
+import 'shared/login_form.dart';
+import 'shared/register_form.dart';
+import 'shared/dashboard_page.dart';
+import 'web/spotify_area.dart';
 import 'settings_page.dart';
 import 'about_page.dart';
 
@@ -19,8 +20,14 @@ class MyApp extends StatelessWidget {
       routes: {
         '/login': (context) => const LoginPage(),
         '/register': (context) => const RegisterPage(),
-        '/dashboard': (context) => DashboardPage(),
+        '/dashboard': (context) => const DashboardPage(),
         '/settings': (context) => SettingsPage(),
+        // '/logout': (context) => LogoutPage(),
+        '/spotify': (context) => SpotifyPage(),
+        // '/twitch': (context) => TwitchPage(),
+        // '/google': (context) => GooglePage(),
+        // '/deezer': (context) => DeezerPage(),
+        // '/microsoft': (context) => MicrosoftPage(),
         '/about': (context) => AboutPage(),
       },
     );

@@ -1,3 +1,4 @@
+import 'package:area/shared/api_service.dart';
 import 'package:flutter/material.dart';
 
 const double containerPadding = 25.0;
@@ -72,7 +73,7 @@ class SocialLoginButtons extends StatelessWidget {
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         _buildSocialButton('assets/images/google.png', () {
-          // Handle Google login action
+          launchURL('http://127.0.0.1:8000/api/auth/dj-rest-auth/google/login/');
         }),
         const SizedBox(width: 10),
         _buildSocialButton('assets/images/facebook.png', () {
@@ -84,18 +85,52 @@ class SocialLoginButtons extends StatelessWidget {
 }
 
 class LoginButton extends StatelessWidget {
-  const LoginButton({super.key});
+  final TextEditingController nameController;
+  final TextEditingController passwordController;
+
+  const LoginButton({
+    super.key,
+    required this.nameController,
+    required this.passwordController,
+  });
 
   @override
   Widget build(BuildContext context) {
     return ElevatedButton(
       onPressed: () {
-        Navigator.pushNamed(context, '/dashboard');
+        login(
+          context: context,
+          username: nameController.text,
+          password: passwordController.text,
+        );
       },
       style: blackButtonStyle,
       child: const Text(
         "Login",
         style: TextStyle(color: Colors.white, fontSize: 16),
+      ),
+    );
+  }
+}
+
+class LoginLink extends StatelessWidget {
+  const LoginLink({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: () {
+        Navigator.pushNamed(context, '/login');
+      },
+      hoverColor: Colors.transparent,
+      splashColor: Colors.transparent,
+      highlightColor: Colors.transparent,
+      child: const Text(
+        "Already have an account? Login here!",
+        style: TextStyle(
+          color: Color.fromRGBO(33, 150, 243, 1),
+          decoration: TextDecoration.underline,
+        ),
       ),
     );
   }
@@ -125,13 +160,27 @@ class RegisterLink extends StatelessWidget {
 }
 
 class RegisterButton extends StatelessWidget {
-  const RegisterButton({super.key});
+  final TextEditingController nameController;
+  final TextEditingController emailController;
+  final TextEditingController passwordController;
+
+  const RegisterButton({
+    super.key,
+    required this.nameController,
+    required this.emailController,
+    required this.passwordController,
+  });
 
   @override
   Widget build(BuildContext context) {
     return ElevatedButton(
       onPressed: () {
-        // Handle registration action
+        register(
+          context: context,
+          username: nameController.text,
+          password: passwordController.text,
+          email: emailController.text,
+        );
       },
       style: blackButtonStyle,
       child: const Text(
@@ -216,7 +265,7 @@ class InfoContainer extends StatelessWidget {
             ),
           ),
           Expanded(
-            child: child, // Placeholder for the authentication form
+            child: child,
           ),
         ],
       ),
