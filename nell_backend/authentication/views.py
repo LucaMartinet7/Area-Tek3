@@ -1,21 +1,15 @@
 from django.shortcuts import render
-
-# Create your views here.
-from rest_framework import status
+from rest_framework import status, generics
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from allauth.socialaccount.providers.oauth2.client import OAuth2Error
 from allauth.socialaccount.models import SocialToken, SocialApp, SocialAccount
-from django.contrib.auth.models import User
-from .models import UserToken
-from .serializers import UserTokenSerializer
-import requests
-from rest_framework import generics
 from dj_rest_auth.registration.serializers import RegisterSerializer
 from drf_yasg.utils import swagger_auto_schema
-from .serializers import RegisterSerializer
-from rest_framework.response import Response
-from rest_framework.decorators import api_view
+from .models import UserToken
+from .serializers import UserTokenSerializer
+
+import requests
 
 class RegisterView(generics.CreateAPIView):
     serializer_class = RegisterSerializer
@@ -31,23 +25,9 @@ class OAuthLoginView(APIView):
     def get(self, request, provider):
         try:
             app = SocialApp.objects.get(provider=provider)
-            login_url = f"/accounts/{provider}/login/"
-            return Response({'login_url': login_url})
-        except SocialApp.DoesNotExist:
-            return Response({'error': 'Provider not configured'}, status=404)
-
-class OAuthCallbackView(APIView):
-    """
-    Handles the callback after the user logs in with their social account.
-    Stores the access token in the database.
-    """
-
-class OAuthLoginView(APIView):
-    def get(self, request, provider):
-        try:
-            app = SocialApp.objects.get(provider=provider)
-            login_url = f"/accounts/{provider}/login/"
-            return Response({'login_url': login_url})
+            # Use a Flutter deep link or web URL that your Flutter app handles for OAuth login
+            flutter_login_url = f"your_flutter_app://login/{provider}"  # Replace with the actual Flutter deep link
+            return Response({'login_url': flutter_login_url})
         except SocialApp.DoesNotExist:
             return Response({'error': 'Provider not configured'}, status=404)
 
@@ -64,13 +44,13 @@ class OAuthCallbackView(APIView):
         try:
             app = SocialApp.objects.get(provider=provider)
             token_url = app.token_url
-            redirect_uri = app.callback_url
+            flutter_redirect_url = "http://localhost:3000/dashboard#/dashboard"  # Replace with your actual Flutter URL
 
             payload = {
                 'client_id': app.client_id,
                 'client_secret': app.secret,
                 'code': code,
-                'redirect_uri': redirect_uri,
+                'redirect_uri': flutter_redirect_url,  # Use Flutter URL as redirect URI
                 'grant_type': 'authorization_code',
             }
 
