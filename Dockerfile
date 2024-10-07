@@ -4,13 +4,6 @@ FROM python:3.10-slim
 # Set the working directory
 WORKDIR /app
 
-# Install build dependencies
-RUN apt-get update && apt-get install -y \
-    build-essential \
-    pkg-config \
-    libmariadb-dev \
-    && rm -rf /var/lib/apt/lists/*
-
 # Copy the requirements file and install dependencies
 COPY requirements.txt .
 
