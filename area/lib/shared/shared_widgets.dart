@@ -73,7 +73,7 @@ class SocialLoginButtons extends StatelessWidget {
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         _buildSocialButton('assets/images/google.png', () {
-          launchURL('http://127.0.0.1:8000/api/auth/dj-rest-auth/google/login/');
+          launchURL('http://127.0.0.1:8000/accounts/google/login/');
         }),
         const SizedBox(width: 10),
         _buildSocialButton('assets/images/facebook.png', () {
