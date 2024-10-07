@@ -33,3 +33,4 @@ spotipy
 msal
 google-auth-oauthlib
 google-api-python-client
+python-dotenv
