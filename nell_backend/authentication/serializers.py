@@ -24,10 +24,10 @@ class CustomRestAuthRegisterSerializer(DefaultRegisterSerializer):
 class RegisterSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True)
 
+class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ['username', 'password', 'email', 'first_name', 'last_name']
-        ref_name = 'CustomRegisterSerializer'
+        fields = ['id', 'username', 'email']
 
     def create(self, validated_data):
         user = User(

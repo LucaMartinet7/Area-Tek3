@@ -1,4 +1,6 @@
 from django.shortcuts import render
+
+# Create your views here.
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -13,15 +15,20 @@ from dj_rest_auth.registration.serializers import RegisterSerializer
 from drf_yasg.utils import swagger_auto_schema
 
 
-class RegisterView(generics.CreateAPIView):
-    serializer_class = RegisterSerializer
+class OAuthLoginView(APIView):
+    def get(self, request, provider):
+        try:
+            app = SocialApp.objects.get(provider=provider)
+            login_url = f"/accounts/{provider}/login/"
+            return Response({'login_url': login_url})
+        except SocialApp.DoesNotExist:
+            return Response({'error': 'Provider not configured'}, status=404)
 
-    @swagger_auto_schema(request_body=RegisterSerializer)
-    def create(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        self.perform_create(serializer)
-        return Response({"message": "User registered successfully."}, status=status.HTTP_201_CREATED)
+class OAuthCallbackView(APIView):
+    """
+    Handles the callback after the user logs in with their social account.
+    Stores the access token in the database.
+    """
 
 class OAuthLoginView(APIView):
     def get(self, request, provider):
