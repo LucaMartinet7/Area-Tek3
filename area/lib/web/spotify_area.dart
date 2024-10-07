@@ -1,4 +1,5 @@
 import 'package:area/web/web_nav_bar.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 class SpotifyPage extends StatelessWidget {
@@ -30,7 +31,9 @@ class SpotifyPage extends StatelessWidget {
               itemBuilder: (context, index) {
                 return ActionReactionRectangle(
                   onPressed: () {
-                    print('Button $index pressed');
+                    if (kDebugMode) {
+                      print('Button $index pressed');
+                    }
                   },
                   defaultText: 'Rectangle $index',
                   hoverText: 'Hovered $index',
@@ -63,10 +66,10 @@ class ActionReactionRectangle extends StatefulWidget {
   });
 
   @override
-  _ActionReactionRectangleState createState() => _ActionReactionRectangleState();
+  ActionReactionRectangleState createState() => ActionReactionRectangleState();
 }
 
-class _ActionReactionRectangleState extends State<ActionReactionRectangle> {
+class ActionReactionRectangleState extends State<ActionReactionRectangle> {
   bool _hovering = false;
 
   @override

@@ -54,6 +54,8 @@ Future<void> register({
       'username': username,
       'password': password,
       'email': email,
+      'first_name': 'none',
+      'last_name': 'none',
     },
   );
 
