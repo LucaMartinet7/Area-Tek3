@@ -33,3 +33,9 @@ db.sqlite3
 mysql_data/
 docker-compose.yml
 my.cnf
+=======
+.vscode
+area/ios
+area/linux
+area/macos
+area/windows
