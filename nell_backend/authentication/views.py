@@ -13,7 +13,19 @@ import requests
 from rest_framework import generics
 from dj_rest_auth.registration.serializers import RegisterSerializer
 from drf_yasg.utils import swagger_auto_schema
+from .serializers import RegisterSerializer
+from rest_framework.response import Response
+from rest_framework.decorators import api_view
 
+class RegisterView(generics.CreateAPIView):
+    serializer_class = RegisterSerializer
+
+    @swagger_auto_schema(request_body=RegisterSerializer)
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        return Response({"message": "User registered successfully."}, status=status.HTTP_201_CREATED)
 
 class OAuthLoginView(APIView):
     def get(self, request, provider):
