@@ -1,6 +1,10 @@
 from pathlib import Path
 from decouple import config
 from datetime import timedelta
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -9,7 +13,7 @@ DEBUG = config('DEBUG', default=False, cast=bool)
 
 ALLOWED_HOSTS = []
 
-SITE_ID = 1
+SITE_ID = 3
 
 # Social Auth Config
 SOCIAL_AUTH_GOOGLE_OAUTH2_KEY = config('SOCIAL_AUTH_GOOGLE_OAUTH2_KEY')
@@ -53,22 +57,25 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.sites',
     'rest_framework',
     'rest_framework_simplejwt.token_blacklist',
     'authentication',
-    'spotify',
+    'spotifys',
     'open_weather',
-    'microsoft',
-    'twitch',
+    'microsofts',
+    'twitchs',
     'youtube',
     'drf_yasg',
-    'django.contrib.sites',
     'allauth',
     'allauth.account',
     'allauth.socialaccount',
     'allauth.socialaccount.providers.google',
     'allauth.socialaccount.providers.github',
     'allauth.socialaccount.providers.discord',
+    'allauth.socialaccount.providers.microsoft',
+    'allauth.socialaccount.providers.twitch',
+    'allauth.socialaccount.providers.spotify',
     'dj_rest_auth',
     'dj_rest_auth.registration',
     'rest_framework.authtoken',
@@ -137,15 +144,53 @@ DATABASES = {
 
 SOCIALACCOUNT_PROVIDERS = {
     'google': {
-        'SCOPE': ['profile', 'email'],
-        'AUTH_PARAMS': {'access_type': 'online'},
-        'OAUTH_PKCE_ENABLED': True,
+        'APP': {
+            'client_id': os.getenv('SOCIAL_AUTH_GOOGLE_OAUTH2_KEY'),
+            'secret': os.getenv('SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET'),
+            'key': ''
+        }
     },
     'github': {
-        'SCOPE': ['user', 'repo', 'read:org'],
+        'APP': {
+            'client_id': os.getenv('SOCIAL_AUTH_GITHUB_KEY'),
+            'secret': os.getenv('SOCIAL_AUTH_GITHUB_SECRET'),
+            'key': ''
+        }
     },
     'discord': {
-        'SCOPE': ['identify', 'email'],
+        'APP': {
+            'client_id': os.getenv('SOCIAL_AUTH_DISCORD_KEY'),
+            'secret': os.getenv('SOCIAL_AUTH_DISCORD_SECRET'),
+            'key': ''
+        }
+    },
+    'microsoft': {
+        'APP': {
+            'client_id': os.getenv('MICROSOFT_CLIENT_ID'),
+            'secret': os.getenv('MICROSOFT_CLIENT_SECRET'),
+            'key': ''
+        }
+    },
+    'youtube': {
+        'APP': {
+            'client_id': os.getenv('YOUTUBE_CLIENT_ID'),
+            'secret': os.getenv('YOUTUBE_CLIENT_SECRET'),
+            'key': ''
+        }
+    },
+    'twitch': {
+        'APP': {
+            'client_id': os.getenv('TWITCH_CLIENT_ID'),
+            'secret': os.getenv('TWITCH_CLIENT_SECRET'),
+            'key': ''
+        }
+    },
+    'spotify': {
+        'APP': {
+            'client_id': os.getenv('SPOTIFY_CLIENT_ID'),
+            'secret': os.getenv('SPOTIFY_CLIENT_SECRET'),
+            'key': ''
+        }
     },
 }
 

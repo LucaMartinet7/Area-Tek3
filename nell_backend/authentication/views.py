@@ -1,12 +1,17 @@
-from rest_framework import generics
-from rest_framework.response import Response
+from django.shortcuts import render
 from rest_framework import status
+from rest_framework.response import Response
+from rest_framework.views import APIView
+from allauth.socialaccount.providers.oauth2.client import OAuth2Error
+from allauth.socialaccount.models import SocialToken, SocialApp, SocialAccount
+from django.contrib.auth.models import User
+from .models import UserToken
+from .serializers import UserTokenSerializer
+import requests
+from rest_framework import generics
+from dj_rest_auth.registration.serializers import RegisterSerializer
 from drf_yasg.utils import swagger_auto_schema
-from rest_framework.decorators import api_view
-from allauth.socialaccount.providers.google.views import oauth2_login as google_login_view
-from allauth.socialaccount.providers.github.views import oauth2_login as github_login_view
-from allauth.socialaccount.providers.discord.views import oauth2_login as discord_login_view
-from .serializers import RegisterSerializer
+
 
 class RegisterView(generics.CreateAPIView):
     serializer_class = RegisterSerializer
@@ -18,18 +23,56 @@ class RegisterView(generics.CreateAPIView):
         self.perform_create(serializer)
         return Response({"message": "User registered successfully."}, status=status.HTTP_201_CREATED)
 
-# Social login views wrapped for Swagger
-@swagger_auto_schema(method='get', operation_description="Login with Google OAuth2")
-@api_view(['GET'])
-def google_login(request):
-    return google_login_view(request)
+class OAuthLoginView(APIView):
+    def get(self, request, provider):
+        try:
+            app = SocialApp.objects.get(provider=provider)
+            login_url = f"/accounts/{provider}/login/"
+            return Response({'login_url': login_url})
+        except SocialApp.DoesNotExist:
+            return Response({'error': 'Provider not configured'}, status=404)
 
-@swagger_auto_schema(method='get', operation_description="Login with GitHub OAuth2")
-@api_view(['GET'])
-def github_login(request):
-    return github_login_view(request)
+class OAuthCallbackView(APIView):
+    """
+    Handles the callback after the user logs in with their social account.
+    Stores the access token in the database.
+    """
 
-@swagger_auto_schema(method='get', operation_description="Login with Discord OAuth2")
-@api_view(['GET'])
-def discord_login(request):
-    return discord_login_view(request)
+    def post(self, request, *args, **kwargs):
+        provider = request.data.get('provider')
+        code = request.data.get('code')
+
+        try:
+            app = SocialApp.objects.get(provider=provider)
+            token_url = app.token_url
+            redirect_uri = app.callback_url
+
+            payload = {
+                'client_id': app.client_id,
+                'client_secret': app.secret,
+                'code': code,
+                'redirect_uri': redirect_uri,
+                'grant_type': 'authorization_code',
+            }
+
+            response = requests.post(token_url, data=payload)
+            token_data = response.json()
+
+            user = request.user
+            token, _ = UserToken.objects.update_or_create(
+                user=user,
+                provider=provider,
+                defaults={
+                    'access_token': token_data['access_token'],
+                    'refresh_token': token_data.get('refresh_token'),
+                    'expires_at': token_data.get('expires_in'),
+                }
+            )
+
+            serializer = UserTokenSerializer(token)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+
+        except OAuth2Error as e:
+            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        except SocialApp.DoesNotExist:
+            return Response({'error': 'Invalid provider'}, status=status.HTTP_400_BAD_REQUEST)
