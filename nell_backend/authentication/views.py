@@ -44,7 +44,7 @@ class OAuthCallbackView(APIView):
         try:
             app = SocialApp.objects.get(provider=provider)
             token_url = app.token_url
-            flutter_redirect_url = "http://localhost:3000/dashboard#/dashboard"  # Replace with your actual Flutter URL
+            flutter_redirect_url = "http://localhost:3000/dashboard"  # Replace with your actual Flutter URL
 
             payload = {
                 'client_id': app.client_id,
