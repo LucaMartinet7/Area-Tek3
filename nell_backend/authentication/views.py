@@ -1,15 +1,21 @@
 from django.shortcuts import render
-from rest_framework import status, generics
+
+# Create your views here.
+from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from allauth.socialaccount.providers.oauth2.client import OAuth2Error
 from allauth.socialaccount.models import SocialToken, SocialApp, SocialAccount
-from dj_rest_auth.registration.serializers import RegisterSerializer
-from drf_yasg.utils import swagger_auto_schema
+from django.contrib.auth.models import User
 from .models import UserToken
 from .serializers import UserTokenSerializer
-
 import requests
+from rest_framework import generics
+from dj_rest_auth.registration.serializers import RegisterSerializer
+from drf_yasg.utils import swagger_auto_schema
+from .serializers import RegisterSerializer
+from rest_framework.response import Response
+from rest_framework.decorators import api_view
 
 class RegisterView(generics.CreateAPIView):
     serializer_class = RegisterSerializer
@@ -25,9 +31,8 @@ class OAuthLoginView(APIView):
     def get(self, request, provider):
         try:
             app = SocialApp.objects.get(provider=provider)
-            # Use a Flutter deep link or web URL that your Flutter app handles for OAuth login
-            flutter_login_url = f"your_flutter_app://login/{provider}"  # Replace with the actual Flutter deep link
-            return Response({'login_url': flutter_login_url})
+            login_url = f"/accounts/{provider}/login/"
+            return Response({'login_url': login_url})
         except SocialApp.DoesNotExist:
             return Response({'error': 'Provider not configured'}, status=404)
 
@@ -44,13 +49,13 @@ class OAuthCallbackView(APIView):
         try:
             app = SocialApp.objects.get(provider=provider)
             token_url = app.token_url
-            flutter_redirect_url = "http://localhost:3000/dashboard"  # Replace with your actual Flutter URL
+            redirect_uri = app.callback_url
 
             payload = {
                 'client_id': app.client_id,
                 'client_secret': app.secret,
                 'code': code,
-                'redirect_uri': flutter_redirect_url,  # Use Flutter URL as redirect URI
+                'redirect_uri': redirect_uri,
                 'grant_type': 'authorization_code',
             }
 
