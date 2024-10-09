@@ -1,15 +1,21 @@
 from pathlib import Path
 from decouple import config
 from datetime import timedelta
+import os
+from dotenv import load_dotenv
+import pymysql
+pymysql.install_as_MySQLdb()
+
+load_dotenv()
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = config('SECRET_KEY')
-DEBUG = config('DEBUG', default=False, cast=bool)
+SECRET_KEY = os.getenv('SECRET_KEY')
+DEBUG = os.getenv('DEBUG', 'False') == 'True'
 
 ALLOWED_HOSTS = []
 
-SITE_ID = 1
+SITE_ID = 3
 
 # Social Auth Config
 SOCIAL_AUTH_GOOGLE_OAUTH2_KEY = config('SOCIAL_AUTH_GOOGLE_OAUTH2_KEY')
@@ -21,6 +27,29 @@ SOCIAL_AUTH_GITHUB_SECRET = config('SOCIAL_AUTH_GITHUB_SECRET')
 SOCIAL_AUTH_DISCORD_KEY = config('SOCIAL_AUTH_DISCORD_KEY')
 SOCIAL_AUTH_DISCORD_SECRET = config('SOCIAL_AUTH_DISCORD_SECRET')
 
+SPOTIFY_CLIENT_ID = config('SPOTIFY_CLIENT_ID')
+SPOTIFY_CLIENT_SECRET = config('SPOTIFY_CLIENT_SECRET')
+SPOTIFY_REDIRECT_URI = config('SPOTIFY_REDIRECT_URI')
+
+OPENWEATHER_API_KEY = config('OPENWEATHER_API_KEY')
+
+MICROSOFT_CLIENT_ID = config('MICROSOFT_CLIENT_ID')
+MICROSOFT_CLIENT_SECRET = config('MICROSOFT_CLIENT_SECRET')
+MICROSOFT_TENANT_ID = config('MICROSOFT_TENANT_ID')
+MICROSOFT_REDIRECT_URI = config('MICROSOFT_REDIRECT_URI')
+MICROSOFT_AUTHORITY = config('MICROSOFT_AUTHORITY')
+MICROSOFT_SCOPE = config('MICROSOFT_SCOPE', cast=lambda v: [s.strip() for s in v.split(',')])
+
+YOUTUBE_CLIENT_ID = config('YOUTUBE_CLIENT_ID')
+YOUTUBE_CLIENT_SECRET = config('YOUTUBE_CLIENT_SECRET')
+YOUTUBE_REDIRECT_URI = config('YOUTUBE_REDIRECT_URI')
+YOUTUBE_SCOPES = config('YOUTUBE_SCOPES').split(',')
+
+TWITCH_CLIENT_ID=config('TWITCH_CLIENT_ID')
+TWITCH_CLIENT_SECRET=config('TWITCH_CLIENT_SECRET')
+TWITCH_REDIRECT_URI=config('TWITCH_REDIRECT_URI')
+TWITCH_SCOPES = config('TWITCH_SCOPES')
+
 REST_USE_JWT = True
 
 INSTALLED_APPS = [
@@ -30,39 +59,30 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.sites',
     'rest_framework',
     'rest_framework_simplejwt.token_blacklist',
     'authentication',
+    'spotifys',
+    'open_weather',
+    'microsofts',
+    'twitchs',
+    'youtube',
     'drf_yasg',
-    'django.contrib.sites',
     'allauth',
     'allauth.account',
     'allauth.socialaccount',
     'allauth.socialaccount.providers.google',
     'allauth.socialaccount.providers.github',
     'allauth.socialaccount.providers.discord',
+    'allauth.socialaccount.providers.microsoft',
+    'allauth.socialaccount.providers.twitch',
+    'allauth.socialaccount.providers.spotify',
     'dj_rest_auth',
     'dj_rest_auth.registration',
     'rest_framework.authtoken',
     'corsheaders',
 ]
-
-REST_FRAMEWORK = {
-    'DEFAULT_AUTHENTICATION_CLASSES': (
-        'rest_framework.authentication.SessionAuthentication',
-        'rest_framework_simplejwt.authentication.JWTAuthentication',
-    ),
-}
-
-SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=5),
-    'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
-    'ROTATE_REFRESH_TOKENS': True,
-    'BLACKLIST_AFTER_ROTATION': True,
-    'ALGORITHM': 'HS256',
-    'SIGNING_KEY': config('SECRET_KEY'),
-    'AUTH_HEADER_TYPES': ('Bearer',),
-}
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -94,36 +114,93 @@ TEMPLATES = [
     },
 ]
 
+AUTHENTICATION_BACKENDS = (
+    'django.contrib.auth.backends.ModelBackend',
+    'allauth.account.auth_backends.AuthenticationBackend',
+)
+
+SITE_ID = 3
+LOGIN_REDIRECT_URL = 'http://localhost:3000/dashboard'
+
 WSGI_APPLICATION = 'nell_backend.wsgi.application'
 
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': config('DB_NAME'),
-        'USER': config('DB_USER'),
-        'PASSWORD': config('DB_PASSWORD'),
-        'HOST': config('DB_HOST'),
-        'PORT': config('DB_PORT', default=3306),
+        'NAME': os.getenv('DB_NAME'),
+        'USER': os.getenv('DB_USER'),
+        'PASSWORD': os.getenv('DB_PASSWORD'),
+        'HOST': os.getenv('DB_HOST'),
+        'PORT': os.getenv('DB_PORT'),
     }
 }
 
 SOCIALACCOUNT_PROVIDERS = {
     'google': {
-        'SCOPE': ['profile', 'email'],
-        'AUTH_PARAMS': {'access_type': 'online'},
-        'OAUTH_PKCE_ENABLED': True,
+        'APP': {
+            'client_id': os.getenv('SOCIAL_AUTH_GOOGLE_OAUTH2_KEY'),
+            'secret': os.getenv('SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET'),
+            'key': ''
+        }
     },
     'github': {
-        'SCOPE': ['user', 'repo', 'read:org'],
+        'APP': {
+            'client_id': os.getenv('SOCIAL_AUTH_GITHUB_KEY'),
+            'secret': os.getenv('SOCIAL_AUTH_GITHUB_SECRET'),
+            'key': ''
+        }
     },
     'discord': {
-        'SCOPE': ['identify', 'email'],
+        'APP': {
+            'client_id': os.getenv('SOCIAL_AUTH_DISCORD_KEY'),
+            'secret': os.getenv('SOCIAL_AUTH_DISCORD_SECRET'),
+            'key': ''
+        }
+    },
+    'microsoft': {
+        'APP': {
+            'client_id': os.getenv('MICROSOFT_CLIENT_ID'),
+            'secret': os.getenv('MICROSOFT_CLIENT_SECRET'),
+            'key': ''
+        }
+    },
+    'youtube': {
+        'APP': {
+            'client_id': os.getenv('YOUTUBE_CLIENT_ID'),
+            'secret': os.getenv('YOUTUBE_CLIENT_SECRET'),
+            'key': ''
+        }
+    },
+    'twitch': {
+        'APP': {
+            'client_id': os.getenv('TWITCH_CLIENT_ID'),
+            'secret': os.getenv('TWITCH_CLIENT_SECRET'),
+            'key': ''
+        }
+    },
+    'spotify': {
+        'APP': {
+            'client_id': os.getenv('SPOTIFY_CLIENT_ID'),
+            'secret': os.getenv('SPOTIFY_CLIENT_SECRET'),
+            'key': ''
+        }
     },
 }
 
-REST_AUTH_REGISTER_SERIALIZERS = {
-    'REGISTER_SERIALIZER': 'authentication.serializers.CustomRestAuthRegisterSerializer'
-}
+AUTH_PASSWORD_VALIDATORS = [
+    {
+        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
+    },
+    {
+        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
+    },
+    {
+        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
+    },
+    {
+        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
+    },
+]
 
 CORS_ALLOW_ALL_ORIGINS = True
 
@@ -143,8 +220,11 @@ CORS_ALLOW_HEADERS = [
 ]
 
 LANGUAGE_CODE = 'en-us'
+
 TIME_ZONE = 'UTC'
+
 USE_I18N = True
+
 USE_TZ = True
 
 STATIC_URL = 'static/'

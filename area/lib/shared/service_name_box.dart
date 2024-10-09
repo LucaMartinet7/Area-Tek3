@@ -11,8 +11,8 @@ class ServiceNameBox extends StatelessWidget {
     required this.serviceName,
     required this.onConnect,
     this.borderColor = Colors.grey, // Default border color
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   BoxDecoration _boxDecoration() {
     return BoxDecoration(
