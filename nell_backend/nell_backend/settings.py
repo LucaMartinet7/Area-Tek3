@@ -120,7 +120,7 @@ AUTHENTICATION_BACKENDS = (
 )
 
 SITE_ID = 3
-LOGIN_REDIRECT_URL = 'http://localhost:42065/dashboard#/dashboard'
+LOGIN_REDIRECT_URL = 'http://localhost:3000/dashboard'
 
 WSGI_APPLICATION = 'nell_backend.wsgi.application'
 
