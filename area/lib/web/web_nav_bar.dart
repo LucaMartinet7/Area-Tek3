@@ -5,9 +5,16 @@ class WebNavBar extends StatelessWidget implements PreferredSizeWidget {
 
   @override
   Widget build(BuildContext context) {
-    return AppBar(
-      backgroundColor: const Color.fromARGB(255, 140, 211, 255),
-      leading: _buildNavButton(context, 'assets/vectors/exit.png', '/logout'),
+    return Container(
+      decoration: BoxDecoration(
+        border: Border.all (
+          color: const Color.fromARGB(255, 140, 211, 255), width: 5
+        )
+      ),
+    child: AppBar(
+      backgroundColor: Colors.transparent,
+      elevation: 0,
+      leading: _buildNavButton(context, 'assets/vectors/exit.png', '/login'),
       flexibleSpace: Row(
         children: <Widget>[
           Expanded(
@@ -26,6 +33,7 @@ class WebNavBar extends StatelessWidget implements PreferredSizeWidget {
           _buildNavButton(context, 'assets/vectors/info.png', '/about'),
         ],
       ),
+    ),
     );
   }
 
@@ -36,6 +44,7 @@ class WebNavBar extends StatelessWidget implements PreferredSizeWidget {
         assetPath,
         width: 32,
         height: 32,
+        color: Color.fromARGB(255, 140, 211, 255),
       ),
     );
   }

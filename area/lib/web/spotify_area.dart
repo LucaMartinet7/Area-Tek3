@@ -9,99 +9,68 @@ class SpotifyPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: const WebNavBar(),
-      body: Column(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(20.0),
-            child: Image.asset(
-              'assets/images/spotify.png',
-              height: 50,
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                _buildContainer(context, 'Action', const Color.fromRGBO(29, 185, 84, 1)),
+                _buildContainer(context, 'Reaction', Colors.red),
+              ],
             ),
-          ),
-          Expanded(
-            child: GridView.builder(
-              padding: const EdgeInsets.all(50.0),
-              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 5,
-                crossAxisSpacing: 15.0,
-                mainAxisSpacing: 15.0,
-                childAspectRatio: 3 / 4, // Maintain the aspect ratio
-              ),
-              itemCount: 10, // 2 rows of 5 rectangles
-              itemBuilder: (context, index) {
-                return ActionReactionRectangle(
-                  onPressed: () {
-                    if (kDebugMode) {
-                      print('Button $index pressed');
-                    }
-                  },
-                  defaultText: 'Rectangle $index',
-                  hoverText: 'Hovered $index',
-                  buttonText: 'Action $index',
-                  color: Colors.primaries[index % Colors.primaries.length], // Different colors
-                );
+            const SizedBox(height: 40), // Increase the space between the rows
+            ElevatedButton(
+              onPressed: () {
+                if (kDebugMode) {
+                  print('Button pressed');
+                }
               },
+              child: const Text('Action Button'),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
-}
 
-class ActionReactionRectangle extends StatefulWidget {
-  final VoidCallback onPressed;
-  final String defaultText;
-  final String hoverText;
-  final String buttonText;
-  final Color color;
-
-  const ActionReactionRectangle({
-    required this.onPressed,
-    required this.defaultText,
-    required this.hoverText,
-    required this.buttonText,
-    required this.color,
-    super.key,
-  });
-
-  @override
-  ActionReactionRectangleState createState() => ActionReactionRectangleState();
-}
-
-class ActionReactionRectangleState extends State<ActionReactionRectangle> {
-  bool _hovering = false;
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: widget.onPressed,
-      child: MouseRegion(
-        onEnter: (_) => setState(() => _hovering = true),
-        onExit: (_) => setState(() => _hovering = false),
-        child: AnimatedContainer(
-          duration: Duration(milliseconds: 200),
-          decoration: BoxDecoration(
-            color: _hovering ? widget.color.withOpacity(0.7) : widget.color,
-            borderRadius: BorderRadius.circular(10),
+  Widget _buildContainer(BuildContext context, String title, Color color) {
+    return Container(
+      width: 300, // Increase the width of the container
+      height: 150, // Increase the height of the container
+      padding: const EdgeInsets.all(20.0),
+      decoration: BoxDecoration(
+        color: color,
+        borderRadius: BorderRadius.circular(10),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 10,
+            offset: const Offset(0, 5),
           ),
-          child: Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  _hovering ? widget.hoverText : widget.defaultText,
-                  style: TextStyle(color: Colors.white),
-                ),
-                if (_hovering)
-                  ElevatedButton(
-                    onPressed: widget.onPressed,
-                    child: Text(widget.buttonText),
-                  ),
-              ],
-            ),
+        ],
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            title,
+            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
           ),
-        ),
+          const SizedBox(height: 10),
+          DropdownButton<String>(
+            items: <String>['Option 1', 'Option 2', 'Option 3'].map((String value) {
+              return DropdownMenuItem<String>(
+                value: value,
+                child: Text(value),
+              );
+            }).toList(),
+            onChanged: (_) {},
+            hint: const Text('Select an option', style: TextStyle(color: Colors.white)),
+            dropdownColor: color,
+          ),
+        ],
       ),
     );
   }
