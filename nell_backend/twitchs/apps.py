@@ -1,6 +1,8 @@
 from django.apps import AppConfig
 
-
-class SpotifyConfig(AppConfig):
+class TwitchConfig(AppConfig):
     default_auto_field = 'django.db.models.BigAutoField'
-    name = 'spotify'
+    name = 'twitchs'
+
+    def ready(self):
+        pass

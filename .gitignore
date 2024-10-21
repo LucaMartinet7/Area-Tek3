@@ -31,7 +31,6 @@ db.sqlite3
 # Docker
 *.pid
 mysql_data/
-docker-compose.yml
 my.cnf
 =======
 .vscode
