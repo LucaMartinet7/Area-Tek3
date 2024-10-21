@@ -1,3 +1,24 @@
 from django.db import models
+from django.contrib.auth.models import User
 
-# Create your models here.
+class TwitchLiveAction(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    channel_name = models.CharField(max_length=255)
+    twitch_user_id = models.CharField(max_length=255, blank=True, null=True)
+    access_token = models.CharField(max_length=255, blank=True, null=True)  # Make this field nullable
+    client_id = models.CharField(max_length=255, blank=True, null=True)     # Make client_id nullable if needed
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.user.username} - Twitch Channel Live: {self.channel_name}"
+
+class BlueskyPostReaction(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    message = models.CharField(max_length=255)
+    bluesky_handle = models.CharField(max_length=255, default='')  # Set a default value
+    bluesky_user_id = models.CharField(max_length=255, blank=True, null=True)
+    bluesky_access_token = models.CharField(max_length=255, blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.user.username} - Bluesky Post: {self.message}"

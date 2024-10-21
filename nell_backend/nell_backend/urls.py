@@ -23,6 +23,7 @@ urlpatterns = [
     path('api/microsofts/', include('microsofts.urls')),
     path('api/youtube/', include('youtube.urls')),
     path('api/twitchs/', include('twitchs.urls')),
+    path('api/integrations/', include('integrations.urls')),
 
     path('swagger/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
     path('redoc/', schema_view.with_ui('redoc', cache_timeout=0), name='schema-redoc'),

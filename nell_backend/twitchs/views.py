@@ -2,6 +2,10 @@ import requests
 from django.shortcuts import redirect
 from django.http import JsonResponse
 from django.conf import settings
+from rest_framework import viewsets, permissions
+from .models import TwitchLiveAction, BlueskyPostReaction
+from .serializers import TwitchLiveActionSerializer, BlueskyPostReactionSerializer
+
 
 def twitch_login(request):
     twitch_auth_url = "https://id.twitch.tv/oauth2/authorize"
@@ -53,3 +57,25 @@ def get_twitch_user(request):
     user_info = response.json()
 
     return JsonResponse(user_info)
+
+class TwitchLiveActionViewSet(viewsets.ModelViewSet):
+    queryset = TwitchLiveAction.objects.all()
+    serializer_class = TwitchLiveActionSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        return self.queryset.filter(user=self.request.user)
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+class BlueskyPostReactionViewSet(viewsets.ModelViewSet):
+    queryset = BlueskyPostReaction.objects.all()
+    serializer_class = BlueskyPostReactionSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        return self.queryset.filter(user=self.request.user)
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
