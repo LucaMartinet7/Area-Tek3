@@ -17,7 +17,6 @@ class BlueskyPostReaction(models.Model):
     message = models.CharField(max_length=255)
     bluesky_handle = models.CharField(max_length=255, default='')
     bluesky_user_id = models.CharField(max_length=255, blank=True, null=True)
-    bluesky_access_token = models.CharField(max_length=255, blank=True, null=True)
     bluesky_password = models.CharField(max_length=255, blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
