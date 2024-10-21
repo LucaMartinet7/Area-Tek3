@@ -50,6 +50,12 @@ TWITCH_CLIENT_SECRET=config('TWITCH_CLIENT_SECRET')
 TWITCH_REDIRECT_URI=config('TWITCH_REDIRECT_URI')
 TWITCH_SCOPES = config('TWITCH_SCOPES')
 
+TWITCH_WEBHOOK_CALLBACK_URL = config('TWITCH_WEBHOOK_CALLBACK_URL')
+TWITCH_WEBHOOK_SECRET = config('TWITCH_WEBHOOK_SECRET')
+
+DISCORD_WEBHOOK_URL = config('DISCORD_WEBHOOK_URL')
+
+
 REST_USE_JWT = True
 
 INSTALLED_APPS = [
@@ -68,6 +74,7 @@ INSTALLED_APPS = [
     'microsofts',
     'twitchs',
     'youtube',
+    'integrations',
     'drf_yasg',
     'allauth',
     'allauth.account',
