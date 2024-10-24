@@ -1,8 +1,79 @@
-import msal
 import requests
+import msal
 from django.conf import settings
 from django.shortcuts import redirect, render
 from django.http import JsonResponse
+from rest_framework import viewsets, permissions, status
+from rest_framework.response import Response
+from rest_framework.views import APIView
+from .models import OutlookReaction
+from .serializers import OutlookReactionSerializer
+
+def send_outlook_email(user):
+    email_data = {
+        "subject": "You're listening to The Beatles!",
+        "body": "Hey, we noticed you're playing a Beatles song on Spotify!",
+        "recipient_email": "recipient@example.com"
+    }
+
+    access_token = "your_microsoft_access_token"
+    headers = {
+        'Authorization': f'Bearer {access_token}',
+        'Content-Type': 'application/json'
+    }
+
+    email_payload = {
+        "message": {
+            "subject": email_data["subject"],
+            "body": {
+                "contentType": "Text",
+                "content": email_data["body"]
+            },
+            "toRecipients": [
+                {
+                    "emailAddress": {
+                        "address": email_data["recipient_email"]
+                    }
+                }
+            ]
+        },
+        "saveToSentItems": "true"
+    }
+
+    response = requests.post(
+        'https://graph.microsoft.com/v1.0/me/sendMail',
+        headers=headers,
+        json=email_payload
+    )
+
+    if response.status_code == 202:
+        OutlookReaction.objects.create(
+            user=user,
+            subject=email_data["subject"],
+            body=email_data["body"],
+            recipient_email=email_data["recipient_email"]
+        )
+    else:
+        raise Exception("Failed to send email")
+
+class OutlookReactionViewSet(viewsets.ModelViewSet):
+    queryset = OutlookReaction.objects.all()
+    serializer_class = OutlookReactionSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        return self.queryset.filter(user=self.request.user)
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+class TriggerOutlookEmailAPIView(APIView):
+    def post(self, request):
+        try:
+            send_outlook_email(request.user)
+            return Response({"message": "Outlook email sent successfully."}, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 def microsoft_login(request):
     client = msal.ConfidentialClientApplication(
