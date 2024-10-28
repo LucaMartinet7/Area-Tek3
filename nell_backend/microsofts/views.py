@@ -1,5 +1,6 @@
 import requests
 import msal
+from django.core.mail import send_mail
 from django.conf import settings
 from django.shortcuts import redirect, render
 from django.http import JsonResponse
@@ -135,3 +136,15 @@ def get_user_info(request):
         return JsonResponse(response.json())
     else:
         return JsonResponse({'error': 'Failed to fetch user info'}, status=response.status_code)
+
+def send_subscriber_email(request):
+    if 'outlook_email' not in request.session:
+        return JsonResponse({'error': 'User email not found'}, status=401)
+
+    email = request.session['outlook_email']
+    subject = "New YouTube Subscriber Alert!"
+    message = "Congratulations! You've gained a new subscriber on your YouTube channel!"
+    from_email = settings.DEFAULT_FROM_EMAIL
+
+    send_mail(subject, message, from_email, [email])
+    return JsonResponse({'message': 'Notification email sent successfully'})

@@ -77,3 +77,18 @@ def check_spotify_beatles(request):
         return JsonResponse({'message': f"You're listening to a Beatles song: {track_name}"}, status=200)
 
     return JsonResponse({'message': f"You're listening to {artist_name}, not The Beatles."}, status=200)
+
+def play_spotify_playlist(request): #play first playlist of the user
+    access_token = request.session.get('spotify_access_token')
+    if not access_token:
+        return JsonResponse({'error': 'User not authenticated on Spotify'}, status=401)
+
+    sp = spotipy.Spotify(auth=access_token)
+    playlists = sp.current_user_playlists()
+    if not playlists['items']:
+        return JsonResponse({'error': 'No playlists found for user'}, status=404)
+
+    playlist_id = playlists['items'][0]['id']
+    sp.start_playback(context_uri=f'spotify:playlist:{playlist_id}')
+    
+    return JsonResponse({'message': f'Spotify playlist "{playlists["items"][0]["name"]}" is now playing.'})
