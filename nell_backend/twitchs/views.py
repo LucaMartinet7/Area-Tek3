@@ -1,55 +1,84 @@
 import requests
-from django.shortcuts import redirect
-from django.http import JsonResponse
-from django.conf import settings
+from rest_framework import viewsets, permissions, status
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from .models import TwitchLiveAction, BlueskyPostReaction
+from .serializers import TwitchLiveActionSerializer, BlueskyPostReactionSerializer, BlueskyUserIDRequestSerializer
+from .tasks import check_twitch_live
+from rest_framework import serializers
+from drf_yasg.utils import swagger_auto_schema
+from drf_yasg import openapi
+from atproto import Client
 
-def twitch_login(request):
-    twitch_auth_url = "https://id.twitch.tv/oauth2/authorize"
-    params = {
-        'client_id': settings.TWITCH_CLIENT_ID,
-        'redirect_uri': settings.TWITCH_REDIRECT_URI,
-        'response_type': 'code',
-        'scope': settings.TWITCH_SCOPES
-    }
+class CheckTwitchLiveView(APIView):
+    def post(self, request):
+        try:
+            check_twitch_live()
+            return Response({"message": "Twitch live status check executed successfully."}, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-    auth_url = f"{twitch_auth_url}?" + "&".join([f"{key}={value}" for key, value in params.items()])
-    return redirect(auth_url)
+class TwitchLiveActionViewSet(viewsets.ModelViewSet):
+    queryset = TwitchLiveAction.objects.all()
+    serializer_class = TwitchLiveActionSerializer
+    permission_classes = [permissions.IsAuthenticated]
 
-def twitch_callback(request):
-    code = request.GET.get('code')
-    if not code:
-        return JsonResponse({'error': 'Missing code parameter'}, status=400)
+    def get_queryset(self):
+        return self.queryset.filter(user=self.request.user)
 
-    token_url = "https://id.twitch.tv/oauth2/token"
-    data = {
-        'client_id': settings.TWITCH_CLIENT_ID,
-        'client_secret': settings.TWITCH_CLIENT_SECRET,
-        'code': code,
-        'grant_type': 'authorization_code',
-        'redirect_uri': settings.TWITCH_REDIRECT_URI
-    }
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
 
-    response = requests.post(token_url, data=data)
-    token_info = response.json()
+class BlueskyPostReactionViewSet(viewsets.ModelViewSet):
+    queryset = BlueskyPostReaction.objects.all()
+    serializer_class = BlueskyPostReactionSerializer
+    permission_classes = [permissions.IsAuthenticated]
 
-    if 'access_token' in token_info:
-        request.session['twitch_access_token'] = token_info['access_token']
-        return JsonResponse({'status': 'success', 'token_info': token_info})
-    else:
-        return JsonResponse({'error': 'Failed to retrieve access token'}, status=400)
+    def get_queryset(self):
+        return self.queryset.filter(user=self.request.user)
 
-def get_twitch_user(request):
-    access_token = request.session.get('twitch_access_token')
-    if not access_token:
-        return JsonResponse({'error': 'User not authenticated'}, status=401)
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
 
-    user_url = "https://api.twitch.tv/helix/users"
-    headers = {
-        'Authorization': f'Bearer {access_token}',
-        'Client-ID': settings.TWITCH_CLIENT_ID
-    }
+class GetBlueskyUserIDView(APIView):
+    @swagger_auto_schema(
+        request_body=BlueskyUserIDRequestSerializer,
+        responses={200: openapi.Response('Bluesky User ID retrieved and saved successfully.')}
+    )
+    def post(self, request):
+        serializer = BlueskyUserIDRequestSerializer(data=request.data)
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    response = requests.get(user_url, headers=headers)
-    user_info = response.json()
+        bluesky_handle = serializer.validated_data.get("bluesky_handle")
+        bluesky_password = serializer.validated_data.get("bluesky_password")
 
-    return JsonResponse(user_info)
+        try:
+            # Initialize the Bluesky client and log in
+            client = Client()
+            login_response = client.login(bluesky_handle, bluesky_password)
+
+            # Check if the login was successful and attempt to retrieve the user ID (DID)
+            access_token = getattr(client, 'access_token', None)
+
+            if not access_token and hasattr(client, 'session'):
+                access_token = client.session.get('accessJwt', None)
+
+            # Retrieve the Bluesky user ID (DID)
+            user_profile = client.get_profile(actor=bluesky_handle)
+            bluesky_user_id = user_profile.did
+
+            if bluesky_user_id:
+                # Save the details to BlueskyPostReaction table
+                BlueskyPostReaction.objects.create(
+                    user=request.user,
+                    bluesky_handle=bluesky_handle,
+                    bluesky_password=bluesky_password,
+                    bluesky_user_id=bluesky_user_id
+                )
+                return Response({"bluesky_user_id": bluesky_user_id}, status=status.HTTP_200_OK)
+            else:
+                return Response({"error": "User ID not found."}, status=status.HTTP_404_NOT_FOUND)
+
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

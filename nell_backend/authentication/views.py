@@ -42,21 +42,6 @@ class OAuthCallbackView(APIView):
     Stores the access token in the database.
     """
 
-class OAuthLoginView(APIView):
-    def get(self, request, provider):
-        try:
-            app = SocialApp.objects.get(provider=provider)
-            login_url = f"/accounts/{provider}/login/"
-            return Response({'login_url': login_url})
-        except SocialApp.DoesNotExist:
-            return Response({'error': 'Provider not configured'}, status=404)
-
-class OAuthCallbackView(APIView):
-    """
-    Handles the callback after the user logs in with their social account.
-    Stores the access token in the database.
-    """
-
     def post(self, request, *args, **kwargs):
         provider = request.data.get('provider')
         code = request.data.get('code')

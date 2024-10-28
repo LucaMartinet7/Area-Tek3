@@ -49,7 +49,7 @@ class WebDashboard extends StatelessWidget {
       Service('Spotify', 'assets/images/spotify.png', true),
       Service('Twitch', 'assets/images/twitch.png', false),
       Service('Google', 'assets/images/google.png', true),
-      Service('Deezer', 'assets/images/deezer.png', false),
+      Service('Deezer', 'assets/vectors/weather.png', false),
       Service('Microsoft', 'assets/images/microsoft.png', true),
     ];
 
