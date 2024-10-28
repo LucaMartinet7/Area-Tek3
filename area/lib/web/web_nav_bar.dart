@@ -7,39 +7,42 @@ class WebNavBar extends StatelessWidget implements PreferredSizeWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        border: Border.all (
+        border: Border.all(
           color: const Color.fromARGB(255, 140, 211, 255), width: 5
         )
       ),
-    child: AppBar(
-      backgroundColor: Colors.transparent,
-      elevation: 0,
-      leading: _buildNavButton(context, 'assets/vectors/exit.png', '/login'),
-      flexibleSpace: Row(
-        children: <Widget>[
-          Expanded(
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: <Widget>[
-                _buildNavButton(context, 'assets/vectors/account.png', '/dashboard'),
-                _buildNavButton(context, 'assets/vectors/spotify.png', '/spotify'),
-                _buildNavButton(context, 'assets/vectors/twitch.png', '/twitch'),
-                _buildNavButton(context, 'assets/vectors/google.png', '/google'),
-                _buildNavButton(context, 'assets/vectors/deezer.png', '/deezer'),
-                _buildNavButton(context, 'assets/vectors/microsoft.png', '/microsoft'),
-              ],
+      child: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        leading: _buildNavButton(context, 'assets/vectors/exit.png', '/login'),
+        flexibleSpace: Row(
+          children: <Widget>[
+            Expanded(
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: <Widget>[
+                  _buildNavButton(context, 'assets/vectors/account.png', '/dashboard'),
+                  _buildNavButton(context, 'assets/vectors/spotify.png', '/spotify'),
+                  _buildNavButton(context, 'assets/vectors/twitch.png', '/twitch'),
+                  _buildNavButton(context, 'assets/vectors/google.png', '/google'),
+                  _buildNavButton(context, 'assets/vectors/youtube.png', '/youtube'),
+                  _buildNavButton(context, 'assets/vectors/weather.png', '/weather'),
+                  _buildNavButton(context, 'assets/vectors/microsoft.png', '/microsoft'),
+                ],
+              ),
             ),
-          ),
-          _buildNavButton(context, 'assets/vectors/info.png', '/about'),
-        ],
+            _buildNavButton(context, 'assets/vectors/info.png', '/about'),
+          ],
+        ),
       ),
-    ),
     );
   }
 
   Widget _buildNavButton(BuildContext context, String assetPath, String route) {
     return IconButton(
-      onPressed: () => Navigator.pushNamed(context, route),
+      onPressed: ModalRoute.of(context)?.settings.name == route
+          ? null
+          : () => Navigator.pushNamed(context, route),
       icon: Image.asset(
         assetPath,
         width: 32,
