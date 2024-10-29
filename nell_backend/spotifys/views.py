@@ -3,9 +3,11 @@ from django.conf import settings
 from django.http import JsonResponse
 import spotipy
 from spotipy.oauth2 import SpotifyOAuth
+from rest_framework import viewsets, permissions
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from .models import SpotifyAction
+from .models import *
+from .serializers import *
 
 def spotify_login(request):
     sp_oauth = SpotifyOAuth(
@@ -92,3 +94,19 @@ def play_spotify_playlist(request): #play first playlist of the user
     sp.start_playback(context_uri=f'spotify:playlist:{playlist_id}')
     
     return JsonResponse({'message': f'Spotify playlist "{playlists["items"][0]["name"]}" is now playing.'})
+
+class SpotifySongActionViewSet(viewsets.ModelViewSet):
+    queryset = SpotifySongAction.objects.all()
+    serializer_class = SpotifySongActionSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        return self.queryset.filter(user=self.request.user)
+
+class TwitchChatReactionViewSet(viewsets.ModelViewSet):
+    queryset = TwitchChatReaction.objects.all()
+    serializer_class = TwitchChatReactionSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        return self.queryset.filter(user=self.request.user)
