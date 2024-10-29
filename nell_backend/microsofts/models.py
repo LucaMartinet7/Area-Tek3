@@ -32,3 +32,22 @@ class CalendarEventReaction(models.Model):
 
     def __str__(self):
         return f"Calendar Event for {self.user} - {self.summary}"
+    
+class OneDriveFile(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    file_id = models.CharField(max_length=255, unique=True)
+    name = models.CharField(max_length=255)
+    created_at = models.DateTimeField()
+    saved_to_drive = models.BooleanField(default=False)
+
+    def __str__(self):
+        return f"OneDrive File: {self.name}"
+
+class GoogleDriveFileReaction(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    file_name = models.CharField(max_length=255)
+    google_drive_id = models.CharField(max_length=255)
+    saved_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Google Drive File: {self.file_name}"

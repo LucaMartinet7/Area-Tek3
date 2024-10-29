@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import OutlookReaction, TeamsMessage, CalendarEventReaction
+from .models import *
 
 class OutlookReactionSerializer(serializers.ModelSerializer):
     class Meta:
@@ -14,4 +14,9 @@ class TeamsMessageSerializer(serializers.ModelSerializer):
 class CalendarEventReactionSerializer(serializers.ModelSerializer):
     class Meta:
         model = CalendarEventReaction
+        fields = '__all__'
+
+class GoogleDriveFileReactionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = GoogleDriveFileReaction
         fields = '__all__'
