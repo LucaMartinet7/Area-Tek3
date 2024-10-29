@@ -7,8 +7,9 @@ from django.http import JsonResponse
 from rest_framework import viewsets, permissions, status
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from .models import OutlookReaction
-from .serializers import OutlookReactionSerializer
+from .models import OutlookReaction, TeamsMessage, CalendarEventReaction
+from .serializers import OutlookReactionSerializer, TeamsMessageSerializer, CalendarEventReactionSerializer
+from .tasks import check_teams_message
 
 def send_outlook_email(user):
     email_data = {
@@ -76,75 +77,24 @@ class TriggerOutlookEmailAPIView(APIView):
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-def microsoft_login(request):
-    client = msal.ConfidentialClientApplication(
-        settings.MICROSOFT_CLIENT_ID,
-        authority=settings.MICROSOFT_AUTHORITY,
-        client_credential=settings.MICROSOFT_CLIENT_SECRET
-    )
-    
-    auth_url = client.get_authorization_request_url(
-        settings.MICROSOFT_SCOPE,
-        redirect_uri=settings.MICROSOFT_REDIRECT_URI
-    )
-    return redirect(auth_url)
+class TeamsMessageCheckAPIView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
 
-def microsoft_callback(request):
-    code = request.GET.get('code')
-    
-    if not code:
-        return JsonResponse({'error': 'No code provided'}, status=400)
-    
-    client = msal.ConfidentialClientApplication(
-        settings.MICROSOFT_CLIENT_ID,
-        authority=settings.MICROSOFT_AUTHORITY,
-        client_credential=settings.MICROSOFT_CLIENT_SECRET
-    )
-    
-    token_response = client.acquire_token_by_authorization_code(
-        code,
-        scopes=settings.MICROSOFT_SCOPE,
-        redirect_uri=settings.MICROSOFT_REDIRECT_URI
-    )
-    
-    if 'access_token' in token_response:
-        request.session['microsoft_access_token'] = token_response['access_token']
-        request.session['microsoft_refresh_token'] = token_response['refresh_token']
-        
-        return JsonResponse({
-            'access_token': token_response['access_token'],
-            'refresh_token': token_response['refresh_token'],
-            'expires_in': token_response['expires_in']
-        })
-    else:
-        return JsonResponse({'error': 'Failed to acquire access token', 'details': token_response}, status=400)
+    def post(self, request):
+        try:
+            user = request.user
+            access_token = request.data.get("access_token")
+            check_teams_message(user.id, access_token)
+            return Response({"message": "Teams message check complete."}, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-def get_user_info(request):
-    access_token = request.session.get('microsoft_access_token')
-    
-    if not access_token:
-        return JsonResponse({'error': 'User not authenticated'}, status=401)
-    
-    headers = {
-        'Authorization': f'Bearer {access_token}'
-    }
-    
-    graph_url = 'https://graph.microsoft.com/v1.0/me'
-    response = requests.get(graph_url, headers=headers)
-    
-    if response.status_code == 200:
-        return JsonResponse(response.json())
-    else:
-        return JsonResponse({'error': 'Failed to fetch user info'}, status=response.status_code)
+class TeamsMessageViewSet(viewsets.ModelViewSet):
+    queryset = TeamsMessage.objects.all()
+    serializer_class = TeamsMessageSerializer
+    permission_classes = [permissions.IsAuthenticated]
 
-def send_subscriber_email(request):
-    if 'outlook_email' not in request.session:
-        return JsonResponse({'error': 'User email not found'}, status=401)
-
-    email = request.session['outlook_email']
-    subject = "New YouTube Subscriber Alert!"
-    message = "Congratulations! You've gained a new subscriber on your YouTube channel!"
-    from_email = settings.DEFAULT_FROM_EMAIL
-
-    send_mail(subject, message, from_email, [email])
-    return JsonResponse({'message': 'Notification email sent successfully'})
+class CalendarEventReactionViewSet(viewsets.ModelViewSet):
+    queryset = CalendarEventReaction.objects.all()
+    serializer_class = CalendarEventReactionSerializer
+    permission_classes = [permissions.IsAuthenticated]
