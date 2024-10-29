@@ -20,3 +20,13 @@ class GoogleDriveFileReactionSerializer(serializers.ModelSerializer):
     class Meta:
         model = GoogleDriveFileReaction
         fields = '__all__'
+
+class OutlookEmailActionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = OutlookEmailAction
+        fields = '__all__'
+
+class GoogleChatMessageReactionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = GoogleChatMessageReaction
+        fields = '__all__'

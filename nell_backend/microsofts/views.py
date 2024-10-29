@@ -114,3 +114,35 @@ class GoogleDriveFileReactionViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         return self.queryset.filter(user=self.request.user)
+
+class OutlookEmailActionViewSet(viewsets.ModelViewSet):
+    queryset = OutlookEmailAction.objects.all()
+    serializer_class = OutlookEmailActionSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        return self.queryset.filter(user=self.request.user)
+
+class GoogleChatMessageReactionViewSet(viewsets.ModelViewSet):
+    queryset = GoogleChatMessageReaction.objects.all()
+    serializer_class = GoogleChatMessageReactionSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        return self.queryset.filter(user=self.request.user)
+    
+class OutlookEmailActionViewSet(viewsets.ModelViewSet):
+    queryset = OutlookEmailAction.objects.all()
+    serializer_class = OutlookEmailActionSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        return self.queryset.filter(user=self.request.user)
+
+class GoogleChatMessageReactionViewSet(viewsets.ModelViewSet):
+    queryset = GoogleChatMessageReaction.objects.all()
+    serializer_class = GoogleChatMessageReactionSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        return self.queryset.filter(user=self.request.user)
