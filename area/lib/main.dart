@@ -4,6 +4,11 @@ import 'shared/register_form.dart';
 import 'shared/dashboard_page.dart';
 import 'settings_page.dart';
 import 'about_page.dart';
+import 'web/spotify_page.dart';
+import 'web/twitch_page.dart';
+import 'web/google_page.dart';
+import 'web/youtube_page.dart';
+import 'web/microsoft_page.dart';
 
 void main() {
   runApp(const MyApp());
