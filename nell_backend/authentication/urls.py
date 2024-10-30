@@ -1,15 +1,17 @@
-from django.urls import path, include
-from .views import OAuthLoginView, OAuthCallbackView, RegisterView
+from django.urls import path
+from .views import RegisterView, LoginView, OAuthInitView, OAuthCallbackView
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
 urlpatterns = [
-    path('oauth/login/<str:provider>/', OAuthLoginView.as_view(), name='oauth_login'),
-    path('oauth/callback/', OAuthCallbackView.as_view(), name='oauth_callback'),
-
-    path('dj-rest-auth/', include('dj_rest_auth.urls')),
-    path('dj-rest-auth/registration/', include('dj_rest_auth.registration.urls')),
-
-    path('login/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
-    path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+    # Traditional login and registration
     path('register/', RegisterView.as_view(), name='register'),
+    path('login/', LoginView.as_view(), name='login'),
+
+    # JWT token obtain and refresh endpoints
+    path('token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
+    path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+
+    # OAuth login and callback URLs
+    path('<str:provider>/login/', OAuthInitView.as_view(), name='oauth_login'),
+    path('<str:provider>/callback/', OAuthCallbackView.as_view(), name='oauth_callback'),
 ]
