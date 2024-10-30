@@ -3,3 +3,4 @@ from .models import SocialUser
 
 # Register your models here.
 admin.site.register(SocialUser)
+

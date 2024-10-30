@@ -100,6 +100,7 @@ INSTALLED_APPS = [
     'microsofts',
     'twitchs',
     'youtube',
+    'integrations',
     'drf_yasg',
     'allauth',
     'allauth.account',
@@ -161,7 +162,6 @@ AUTHENTICATION_BACKENDS = (
     'allauth.account.auth_backends.AuthenticationBackend',
 )
 
-SITE_ID = 3
 LOGIN_REDIRECT_URL = 'http://localhost:3000/dashboard'
 
 WSGI_APPLICATION = 'nell_backend.wsgi.application'
