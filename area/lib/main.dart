@@ -7,7 +7,6 @@ import 'about_page.dart';
 import 'package:flutter_web_plugins/flutter_web_plugins.dart';
 import 'web/spotify_page.dart';
 import 'web/twitch_page.dart';
-import 'web/weather_page.dart';
 import 'web/microsoft_page.dart';
 import 'web/youtube_page.dart';
 import 'web/google_page.dart';
@@ -36,7 +35,6 @@ class MyApp extends StatelessWidget {
         '/google': (context) => const GooglePage(),
         '/youtube': (context) => const YoutubePage(),
         '/microsoft': (context) => const MicrosoftPage(),
-        '/weather': (context) => const WeatherPage(),
         '/about': (context) => const AboutPage(),
       },
     );

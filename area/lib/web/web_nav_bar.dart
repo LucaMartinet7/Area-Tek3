@@ -26,7 +26,6 @@ class WebNavBar extends StatelessWidget implements PreferredSizeWidget {
                   _buildNavButton(context, 'assets/vectors/twitch.png', '/twitch'),
                   _buildNavButton(context, 'assets/vectors/google.png', '/google'),
                   _buildNavButton(context, 'assets/vectors/youtube.png', '/youtube'),
-                  _buildNavButton(context, 'assets/vectors/weather.png', '/weather'),
                   _buildNavButton(context, 'assets/vectors/microsoft.png', '/microsoft'),
                 ],
               ),
