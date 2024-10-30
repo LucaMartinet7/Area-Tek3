@@ -68,101 +68,100 @@ PROVIDERS = {
     },
 }
 
-# Internal callback URI for backend processing
-INTERNAL_REDIRECT_URI = 'http://localhost:3000/dashboard'  # Replace with your server address if hosted
+# Base callback URI with a placeholder for the provider
+INTERNAL_REDIRECT_URI_TEMPLATE = 'http://127.0.0.1:8000/api/auth/{provider}/callback/'
 
 class RegisterView(APIView):
-    @swagger_auto_schema(
-        request_body=RegisterSerializer,
-        responses={201: "User registered successfully", 400: "Bad Request"},
-    )
+    @swagger_auto_schema(...)
     def post(self, request):
+        print("Registering new user with data:", request.data)
         serializer = RegisterSerializer(data=request.data)
         if serializer.is_valid():
             user = serializer.save()
+            print("User registered successfully:", user)
             return Response({"message": "User registered successfully"}, status=status.HTTP_201_CREATED)
+        print("Registration errors:", serializer.errors)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class LoginView(APIView):
-    @swagger_auto_schema(
-        request_body=LoginSerializer,
-        responses={200: "User logged in successfully", 400: "Invalid credentials"},
-    )
+    @swagger_auto_schema(...)
     def post(self, request):
+        print("Attempting login with data:", request.data)
         serializer = LoginSerializer(data=request.data)
         if serializer.is_valid():
             username = serializer.validated_data['username']
             password = serializer.validated_data['password']
+            print("Authenticating user:", username)
             user = authenticate(username=username, password=password)
             if user is not None:
                 login(request, user)
+                print("User logged in successfully:", user.username)
                 return Response({"message": "User logged in successfully", "username": user.username}, status=status.HTTP_200_OK)
+            print("Invalid credentials for user:", username)
             return Response({"error": "Invalid credentials"}, status=status.HTTP_400_BAD_REQUEST)
+        print("Login validation errors:", serializer.errors)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class OAuthInitView(APIView):
-    """
-    Initiates the OAuth flow by redirecting to the provider's authorization page.
-    """
-    @swagger_auto_schema(
-        manual_parameters=[
-            openapi.Parameter(
-                'provider', openapi.IN_PATH, description="OAuth provider (discord, github, google, reddit, spotify, twitch)", type=openapi.TYPE_STRING
-            )
-        ],
-        responses={302: "Redirect to provider's OAuth authorization URL", 400: "Unsupported provider"}
-    )
+    @swagger_auto_schema(...)
     def get(self, request, provider):
+        print("OAuth initiation for provider:", provider)
         if provider not in PROVIDERS:
+            print("Unsupported provider:", provider)
             return Response({"error": "Unsupported provider"}, status=status.HTTP_400_BAD_REQUEST)
         
         provider_config = PROVIDERS[provider]
+        # Format the redirect URI with the current provider
+        redirect_uri = INTERNAL_REDIRECT_URI_TEMPLATE.format(provider=provider)
+        
         params = {
             'client_id': provider_config['client_id'],
-            'redirect_uri': INTERNAL_REDIRECT_URI.format(provider=provider),
+            'redirect_uri': redirect_uri,
             'response_type': 'code',
             'scope': provider_config['scope'],
         }
         auth_url = f"{provider_config['auth_url']}?{urlencode(params)}"
+        print("Redirecting to provider auth URL:", auth_url)
         return HttpResponseRedirect(auth_url)
 
+
 class OAuthCallbackView(APIView):
-    @swagger_auto_schema(
-        manual_parameters=[
-            openapi.Parameter(
-                'provider', openapi.IN_PATH, description="OAuth provider (github, google, etc.)", type=openapi.TYPE_STRING
-            )
-        ],
-        responses={302: "User logged in or linked successfully", 400: "Unsupported provider or missing authorization code"}
-    )
+    @swagger_auto_schema(...)
     @csrf_exempt
     def get(self, request, provider):
+        print("OAuth callback for provider:", provider)
         if provider not in PROVIDERS:
+            print("Unsupported provider:", provider)
             return Response({"error": "Unsupported provider"}, status=status.HTTP_400_BAD_REQUEST)
 
         code = request.GET.get('code')
         if not code:
+            print("Missing authorization code")
             return Response({"error": "Authorization code not provided"}, status=status.HTTP_400_BAD_REQUEST)
 
         provider_config = PROVIDERS[provider]
-
-        # Exchange authorization code for access token
+        # Format the redirect URI with the current provider
+        redirect_uri = INTERNAL_REDIRECT_URI_TEMPLATE.format(provider=provider)
+        
         token_data = {
             'client_id': provider_config['client_id'],
             'client_secret': provider_config['client_secret'],
             'code': code,
-            'redirect_uri': INTERNAL_REDIRECT_URI.format(provider=provider),
+            'redirect_uri': redirect_uri,
             'grant_type': 'authorization_code',
         }
+        print("Requesting access token with data:", token_data)
         token_response = requests.post(provider_config['token_url'], data=token_data, headers={'Accept': 'application/json'})
+        print("Access token response:", token_response.json())
         token_response.raise_for_status()
         access_token = token_response.json().get('access_token')
 
-        # Retrieve user data
         headers = {'Authorization': f"Bearer {access_token}"}
+        print("Requesting user data with headers:", headers)
         data_response = requests.get(provider_config['data_url'], headers=headers)
+        print("User data response:", data_response.json())
         data_response.raise_for_status()
         user_data = data_response.json()
 
@@ -173,33 +172,37 @@ class OAuthCallbackView(APIView):
 
         # Check if user is already authenticated
         if request.user.is_authenticated:
+            print("User is already authenticated:", request.user.username)
             user = request.user
             social_user, created = SocialUser.objects.get_or_create(
                 user=user, provider=provider, provider_id=provider_id,
                 defaults={'access_token': access_token, 'provider_username': username}
             )
             if not created:
+                print("Updating existing SocialUser for authenticated user")
                 social_user.access_token = access_token
                 social_user.provider_username = username
                 social_user.save()
-            return HttpResponseRedirect(settings.LOGIN_REDIRECT_URL)
+            return HttpResponseRedirect("http://localhost:3000/dashboard")
 
-        # Save info before redirecting
+        # Save or update user info
         try:
             social_user = SocialUser.objects.get(provider=provider, provider_id=provider_id)
+            print("Existing SocialUser found:", social_user)
             user = social_user.user
             social_user.access_token = access_token
             social_user.provider_username = username
             social_user.save()
         except SocialUser.DoesNotExist:
+            print("Creating new User and SocialUser")
             user = User.objects.create(username=username, email=email)
             social_user = SocialUser.objects.create(
                 user=user, provider=provider, provider_id=provider_id,
                 access_token=access_token, provider_username=username
             )
 
-        # Authenticate and log in
+        print("Logging in user:", user.username)
         login(request, user, backend='django.contrib.auth.backends.ModelBackend')
 
-        # Redirect to the specified LOGIN_REDIRECT_URL
-        return HttpResponseRedirect(settings.LOGIN_REDIRECT_URL)
+        print("Redirecting to dashboard...")
+        return HttpResponseRedirect("http://localhost:3000/dashboard")

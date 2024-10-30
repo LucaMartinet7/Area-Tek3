@@ -38,3 +38,6 @@ area/ios
 area/linux
 area/macos
 area/windows
+
+#config
+config/service_account.json
