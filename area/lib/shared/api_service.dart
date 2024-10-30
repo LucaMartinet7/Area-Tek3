@@ -76,3 +76,25 @@ Future<void> launchURL(String url) async {
       throw 'Could not launch $url';
     }
   }
+
+Future<List<String>> fetchActions() async {
+  final response = await http.get(Uri.parse('http://127.0.0.1:8000/api/actions/'));
+
+  if (response.statusCode == 200) {
+    List<dynamic> data = json.decode(response.body);
+    return data.map((action) => action.toString()).toList();
+  } else {
+    throw Exception('Failed to load actions');
+  }
+}
+
+Future<List<String>> fetchReactions() async {
+  final response = await http.get(Uri.parse('http://127.0.0.1:8000/api/reactions/'));
+
+  if (response.statusCode == 200) {
+    List<dynamic> data = json.decode(response.body);
+    return data.map((reaction) => reaction.toString()).toList();
+  } else {
+    throw Exception('Failed to load reactions');
+  }
+}
