@@ -100,6 +100,7 @@ INSTALLED_APPS = [
     'microsofts',
     'twitchs',
     'youtube',
+    'googles'
     'integrations',
     'drf_yasg',
     'allauth',

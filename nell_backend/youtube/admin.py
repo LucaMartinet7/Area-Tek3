@@ -1,3 +1,5 @@
 from django.contrib import admin
+from .models import YouTubeAction, SpotifyPlaylistReaction
 
-# Register your models here.
+admin.site.register(YouTubeAction)
+admin.site.register(SpotifyPlaylistReaction)
