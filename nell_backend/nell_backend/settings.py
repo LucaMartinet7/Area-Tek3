@@ -55,6 +55,32 @@ TWITCH_WEBHOOK_SECRET = config('TWITCH_WEBHOOK_SECRET')
 
 DISCORD_WEBHOOK_URL = config('DISCORD_WEBHOOK_URL')
 
+REDDIT_CLIENT_ID = config('REDDIT_CLIENT_ID')
+REDDIT_CLIENT_SECRET = config('REDDIT_CLIENT_SECRET')
+
+# OAuth URL Configuration
+AUTHORIZATION_URL_GITHUB = config('AUTHORIZATION_URL_GITHUB')
+AUTHORIZATION_URL_GOOGLE = config('AUTHORIZATION_URL_GOOGLE')
+AUTHORIZATION_URL_DISCORD = config('AUTHORIZATION_URL_DISCORD')
+AUTHORIZATION_URL_SPOTIFY = config('AUTHORIZATION_URL_SPOTIFY')
+AUTHORIZATION_URL_TWITCH = config('AUTHORIZATION_URL_TWITCH')
+AUTHORIZATION_URL_REDDIT = config('AUTHORIZATION_URL_REDDIT')
+
+TOKEN_URL_GITHUB = config('TOKEN_URL_GITHUB')
+TOKEN_URL_GOOGLE = config('TOKEN_URL_GOOGLE')
+TOKEN_URL_DISCORD = config('TOKEN_URL_DISCORD')
+TOKEN_URL_SPOTIFY = config('TOKEN_URL_SPOTIFY')
+TOKEN_URL_TWITCH = config('TOKEN_URL_TWITCH')
+TOKEN_URL_REDDIT = config('TOKEN_URL_REDDIT')
+
+OAUTH_SCOPES = {
+    'github': 'user:email',
+    'google': 'openid email profile',
+    'discord': 'identify email',
+    'spotify': 'user-read-email',
+    'twitch': 'user:read:email',
+    'reddit': 'identity',
+}
 
 REST_USE_JWT = True
 
@@ -103,6 +129,16 @@ MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
 ]
 
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.SessionAuthentication',
+        'rest_framework.authentication.BasicAuthentication',
+    ],
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.IsAuthenticated',
+    ],
+}
+
 ROOT_URLCONF = 'nell_backend.urls'
 
 TEMPLATES = [
@@ -126,7 +162,6 @@ AUTHENTICATION_BACKENDS = (
     'allauth.account.auth_backends.AuthenticationBackend',
 )
 
-SITE_ID = 3
 LOGIN_REDIRECT_URL = 'http://localhost:3000/dashboard'
 
 WSGI_APPLICATION = 'nell_backend.wsgi.application'
@@ -140,58 +175,6 @@ DATABASES = {
         'HOST': os.getenv('DB_HOST'),
         'PORT': os.getenv('DB_PORT'),
     }
-}
-
-SOCIALACCOUNT_PROVIDERS = {
-    'google': {
-        'APP': {
-            'client_id': os.getenv('SOCIAL_AUTH_GOOGLE_OAUTH2_KEY'),
-            'secret': os.getenv('SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET'),
-            'key': ''
-        }
-    },
-    'github': {
-        'APP': {
-            'client_id': os.getenv('SOCIAL_AUTH_GITHUB_KEY'),
-            'secret': os.getenv('SOCIAL_AUTH_GITHUB_SECRET'),
-            'key': ''
-        }
-    },
-    'discord': {
-        'APP': {
-            'client_id': os.getenv('SOCIAL_AUTH_DISCORD_KEY'),
-            'secret': os.getenv('SOCIAL_AUTH_DISCORD_SECRET'),
-            'key': ''
-        }
-    },
-    'microsoft': {
-        'APP': {
-            'client_id': os.getenv('MICROSOFT_CLIENT_ID'),
-            'secret': os.getenv('MICROSOFT_CLIENT_SECRET'),
-            'key': ''
-        }
-    },
-    'youtube': {
-        'APP': {
-            'client_id': os.getenv('YOUTUBE_CLIENT_ID'),
-            'secret': os.getenv('YOUTUBE_CLIENT_SECRET'),
-            'key': ''
-        }
-    },
-    'twitch': {
-        'APP': {
-            'client_id': os.getenv('TWITCH_CLIENT_ID'),
-            'secret': os.getenv('TWITCH_CLIENT_SECRET'),
-            'key': ''
-        }
-    },
-    'spotify': {
-        'APP': {
-            'client_id': os.getenv('SPOTIFY_CLIENT_ID'),
-            'secret': os.getenv('SPOTIFY_CLIENT_SECRET'),
-            'key': ''
-        }
-    },
 }
 
 AUTH_PASSWORD_VALIDATORS = [
