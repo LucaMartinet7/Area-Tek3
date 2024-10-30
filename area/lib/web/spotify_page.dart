@@ -1,0 +1,20 @@
+import 'package:flutter/material.dart';
+import 'package:tuple/tuple.dart';
+import 'area_page.dart';
+
+class SpotifyPage extends StatelessWidget {
+  const SpotifyPage({super.key});
+
+  static const List<Tuple2<String, String>> list = [
+    Tuple2('A new song is played', 'Send a message in users Twitch chat'),
+    Tuple2('If the Beatles are playing', 'Send Microsoft Outlook email'),
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    return ActionReactionPage(
+      title: 'Spotify',
+      area: list,
+    );
+  }
+}
