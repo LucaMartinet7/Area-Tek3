@@ -1,41 +1,28 @@
-from rest_framework import serializers
 from django.contrib.auth.models import User
-from .models import UserToken
-from dj_rest_auth.registration.serializers import RegisterSerializer as DefaultRegisterSerializer
-
-class CustomUserSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = User
-        fields = ['id', 'username', 'email']
-
-class UserTokenSerializer(serializers.ModelSerializer):
-    user = CustomUserSerializer()
-
-    class Meta:
-        model = UserToken
-        fields = ['user', 'provider', 'access_token', 'refresh_token', 'expires_at']
-
-class CustomRestAuthRegisterSerializer(DefaultRegisterSerializer):
-    class Meta:
-        model = User
-        fields = ['username', 'password', 'email', 'first_name', 'last_name']
-        ref_name = 'CustomRestAuthRegisterSerializer'  # Unique name to prevent conflicts
+from rest_framework import serializers
+from .models import SocialUser
 
 class RegisterSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True)
 
     class Meta:
         model = User
-        fields = ['username', 'password', 'email', 'first_name', 'last_name']
-        ref_name = 'CustomRegisterSerializer'  # Unique name to prevent conflicts
+        fields = ['username', 'password', 'email']
 
     def create(self, validated_data):
         user = User(
             username=validated_data['username'],
-            email=validated_data['email'],
-            first_name=validated_data.get('first_name', ''),
-            last_name=validated_data.get('last_name', ''),
+            email=validated_data['email']
         )
-        user.set_password(validated_data['password'])  # Hash the password
-        user.save()  # Save the user to the database
+        user.set_password(validated_data['password'])
+        user.save()
         return user
+
+class LoginSerializer(serializers.Serializer):
+    username = serializers.CharField()
+    password = serializers.CharField(write_only=True)
+
+class SocialUserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = SocialUser
+        fields = ['provider_username', 'provider', 'provider_id', 'access_token']
