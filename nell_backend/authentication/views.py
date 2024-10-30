@@ -8,11 +8,13 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
-from .models import SocialUser
-from .serializers import RegisterSerializer, LoginSerializer, SocialUserSerializer
 from django.contrib.auth.models import User
+from django.utils.crypto import get_random_string  # Import for generating fallback usernames
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
+
+from .models import SocialUser
+from .serializers import RegisterSerializer, LoginSerializer, SocialUserSerializer
 
 # OAuth configuration for each provider from settings
 PROVIDERS = {
@@ -67,7 +69,7 @@ PROVIDERS = {
 }
 
 # Internal callback URI for backend processing
-INTERNAL_REDIRECT_URI = 'http://localhost:8000/api/auth/{provider}/callback/'  # Replace with your server address if hosted
+INTERNAL_REDIRECT_URI = 'http://localhost:3000/dashboard'  # Replace with your server address if hosted
 
 class RegisterView(APIView):
     @swagger_auto_schema(
@@ -133,14 +135,13 @@ class OAuthCallbackView(APIView):
                 'provider', openapi.IN_PATH, description="OAuth provider (github, google, etc.)", type=openapi.TYPE_STRING
             )
         ],
-        responses={200: "User logged in or linked successfully", 400: "Unsupported provider or missing authorization code"}
+        responses={302: "User logged in or linked successfully", 400: "Unsupported provider or missing authorization code"}
     )
-    @csrf_exempt  # Direct CSRF exemption
+    @csrf_exempt
     def get(self, request, provider):
         if provider not in PROVIDERS:
             return Response({"error": "Unsupported provider"}, status=status.HTTP_400_BAD_REQUEST)
 
-        # Check for authorization code
         code = request.GET.get('code')
         if not code:
             return Response({"error": "Authorization code not provided"}, status=status.HTTP_400_BAD_REQUEST)
@@ -165,52 +166,40 @@ class OAuthCallbackView(APIView):
         data_response.raise_for_status()
         user_data = data_response.json()
 
-        # Extract provider-specific user information
         provider_id = user_data.get('id')
         provider_username = user_data.get('login')
+        email = user_data.get('email')
+        username = provider_username or email or get_random_string(10)
 
-        # Check if the user is already authenticated
+        # Check if user is already authenticated
         if request.user.is_authenticated:
-            # Link provider to existing authenticated user
             user = request.user
             social_user, created = SocialUser.objects.get_or_create(
                 user=user, provider=provider, provider_id=provider_id,
-                defaults={'access_token': access_token, 'provider_username': provider_username}
+                defaults={'access_token': access_token, 'provider_username': username}
             )
             if not created:
                 social_user.access_token = access_token
-                social_user.provider_username = provider_username
+                social_user.provider_username = username
                 social_user.save()
-            return Response({
-                "message": f"Linked {provider} to your account",
-                "username": user.username,
-                "provider": provider,
-                "provider_id": provider_id
-            })
+            return HttpResponseRedirect(settings.LOGIN_REDIRECT_URL)
 
-        # Handle case for new user creation or linking to existing SocialUser
+        # Save info before redirecting
         try:
             social_user = SocialUser.objects.get(provider=provider, provider_id=provider_id)
             user = social_user.user
             social_user.access_token = access_token
-            social_user.provider_username = provider_username
+            social_user.provider_username = username
             social_user.save()
         except SocialUser.DoesNotExist:
-            user = User.objects.create(username=provider_username)
+            user = User.objects.create(username=username, email=email)
             social_user = SocialUser.objects.create(
                 user=user, provider=provider, provider_id=provider_id,
-                access_token=access_token, provider_username=provider_username
+                access_token=access_token, provider_username=username
             )
 
-        # Authenticate and log the user in
+        # Authenticate and log in
         login(request, user, backend='django.contrib.auth.backends.ModelBackend')
 
-        # Serialize linked providers
-        social_users = SocialUser.objects.filter(user=user)
-        linked_providers = SocialUserSerializer(social_users, many=True).data
-
-        return Response({
-            "message": "User logged in successfully",
-            "username": user.username,
-            "linked_providers": linked_providers
-        }, status=status.HTTP_200_OK)
+        # Redirect to the specified LOGIN_REDIRECT_URL
+        return HttpResponseRedirect(settings.LOGIN_REDIRECT_URL)

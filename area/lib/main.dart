@@ -5,11 +5,9 @@ import 'shared/dashboard_page.dart';
 import 'web/spotify_area.dart';
 import 'settings_page.dart';
 import 'about_page.dart';
-import 'package:flutter_web_plugins/flutter_web_plugins.dart';
 
 
 void main() {
-  setUrlStrategy(PathUrlStrategy());
   runApp(const MyApp());
 }
 
