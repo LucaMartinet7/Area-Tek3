@@ -1,4 +1,3 @@
-version: '3.8'
 services:
   backend:
     build:
@@ -12,3 +11,16 @@ services:
       - ./nell_backend:/app
     env_file:
       - .env
+
+  flutter:
+    build:
+      context: ./area
+      dockerfile: Dockerfile
+    image: flutter-web
+    container_name: flutter_frontend
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./area:/area
+    working_dir: /area
+    command: flutter run -d web-server --web-port 3000 --web-hostname 0.0.0.0

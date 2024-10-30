@@ -1,8 +1,20 @@
-from django.urls import path
-from .views import microsoft_callback, microsoft_login, get_user_info
+from django.urls import path, include
+from rest_framework.routers import DefaultRouter
+from .views import *
+
+router = DefaultRouter()
+router.register(r'reactions', OutlookReactionViewSet)
+router.register(r'teams-messages', TeamsMessageViewSet)
+router.register(r'calendar-events', CalendarEventReactionViewSet)
+router.register(r'drive-file-reactions', GoogleDriveFileReactionViewSet)
+router.register(r'outlook-email-actions', OutlookEmailActionViewSet)
+router.register(r'google-chat-reactions', GoogleChatMessageReactionViewSet)
 
 urlpatterns = [
-    path('login/', microsoft_login, name='microsoft_login'),
-    path('callback/', microsoft_callback, name='microsoft_callback'),
-    path('me/', get_user_info, name='get_user_info'),
+    path('trigger-email/', TriggerOutlookEmailAPIView.as_view(), name='trigger_outlook_email'),
+    path('check-teams-message/', TeamsMessageCheckAPIView.as_view(), name='check_teams_message'),
+    path('trigger-onedrive-sync/', TriggerOneDriveToGoogleDriveSync.as_view(), name='trigger_onedrive_sync'),
+    path('check-outlook-email/', OutlookEmailActionViewSet.as_view(), name='check_outlook_email'),
+    path('trigger-google-chat/', GoogleChatMessageReactionViewSet.as_view(), name='trigger_google_chat'),
+    path('', include(router.urls)),
 ]

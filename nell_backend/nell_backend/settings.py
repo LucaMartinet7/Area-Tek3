@@ -95,12 +95,10 @@ INSTALLED_APPS = [
     'rest_framework',
     'rest_framework_simplejwt.token_blacklist',
     'authentication',
-    'spotifys',
-    'open_weather',
-    'microsofts',
-    'twitchs',
-    'youtube',
-    'integrations',
+    #'spotifys',
+    #'microsofts',
+    #'twitchs',
+    #'youtube',
     'drf_yasg',
     'allauth',
     'allauth.account',
@@ -133,9 +131,6 @@ REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework.authentication.SessionAuthentication',
         'rest_framework.authentication.BasicAuthentication',
-    ],
-    'DEFAULT_PERMISSION_CLASSES': [
-        'rest_framework.permissions.IsAuthenticated',
     ],
 }
 
