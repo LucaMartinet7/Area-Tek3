@@ -1,4 +1,3 @@
-version: '3.8'
 services:
   backend:
     build:
@@ -15,13 +14,13 @@ services:
 
   flutter:
     build:
-      context: ./docker_flutter
+      context: ./area
       dockerfile: Dockerfile
     image: flutter-web
     container_name: flutter_frontend
     ports:
       - "3000:3000"
     volumes:
-      - ./area:/home/developer/workspace/area
-    working_dir: /home/developer/workspace/area
+      - ./area:/area
+    working_dir: /area
     command: flutter run -d web-server --web-port 3000 --web-hostname 0.0.0.0
