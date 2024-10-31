@@ -10,6 +10,7 @@ import 'shared/google_area.dart';
 import 'shared/youtube_area.dart';
 import 'shared/microsoft_area.dart';
 import 'mobile/mobile_account.dart';
+import 'web/route_guard.dart';
 import 'package:url_strategy/url_strategy.dart';
 
 void main() {
@@ -36,7 +37,6 @@ class MyApp extends StatelessWidget {
         '/youtube': (context) => const YoutubePage(),
         '/microsoft': (context) => const MicrosoftPage(),
         '/about': (context) => const AboutPage(),
-        '/account': (context) => const MobileAccount(),
       },
     );
   }
