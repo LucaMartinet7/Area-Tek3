@@ -1,3 +1,6 @@
 from django.contrib import admin
+from .models import *
 
-# Register your models here.
+admin.site.register(GmailReceivedAction)
+admin.site.register(TwitchChatReaction)
+admin.site.register(SpotifySongReaction)
