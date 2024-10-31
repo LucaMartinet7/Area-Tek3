@@ -72,14 +72,25 @@ PROVIDERS = {
 INTERNAL_REDIRECT_URI_TEMPLATE = 'http://127.0.0.1:8000/api/auth/{provider}/callback/'
 
 class UserInfoView(APIView):
-    def get(self, request, token):
+    def get(self, request, username):
         try:
-            persistent_token = PersistentToken.objects.get(token=token)
-            user = persistent_token.user
-            serializer = UserSerializer(user)
-            return Response(serializer.data, status=status.HTTP_200_OK)
-        except PersistentToken.DoesNotExist:
-            return Response({"error": "Invalid token"}, status=status.HTTP_400_BAD_REQUEST)
+            user = User.objects.get(username=username)
+            has_token = PersistentToken.user_has_token(user)
+            return Response({"has_token": has_token}, status=status.HTTP_200_OK)
+        except User.DoesNotExist:
+            return Response({"error": "User not found"}, status=status.HTTP_404_NOT_FOUND)
+
+class UserLoginView(APIView):
+    def post(self, request):
+        username = request.data.get('username')
+        password = request.data.get('password')
+        user = authenticate(username=username, password=password)
+        
+        if user is not None:
+            token, created = PersistentToken.objects.get_or_create(user=user)
+            return Response({"token": str(token.token)}, status=status.HTTP_200_OK)
+        else:
+            return Response({"error": "Invalid credentials"}, status=status.HTTP_400_BAD_REQUEST)
 
 class RegisterView(APIView):
     @swagger_auto_schema(...)

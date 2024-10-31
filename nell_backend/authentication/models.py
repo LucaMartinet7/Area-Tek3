@@ -15,3 +15,7 @@ class SocialUser(models.Model):
 class PersistentToken(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     token = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
+
+    @staticmethod
+    def user_has_token(user):
+        return PersistentToken.objects.filter(user=user).exists()
