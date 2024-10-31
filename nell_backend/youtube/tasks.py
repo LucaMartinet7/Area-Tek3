@@ -1,7 +1,7 @@
 import requests
 import logging
-from datetime import datetime
-from .models import YouTubeAction, SpotifyPlaylistReaction
+from datetime import datetime, timezone
+from .models import *
 from spotipy import Spotify
 from spotipy.oauth2 import SpotifyOAuth
 
@@ -81,3 +81,66 @@ def play_spotify_track(user):
             logger.info(f"Playing 'Crazy Frog Axel F' for user {user}")
         else:
             logger.error(f"No active Spotify device found for user {user}")
+
+def check_youtube_subscription():
+    actions = YouTubeSubscriptionAction.objects.all()
+    for action in actions:
+        logger.info(f"Checking YouTube subscription for channel ID: {action.channel_id}")
+        
+        response = requests.get(
+            'https://www.googleapis.com/youtube/v3/channels',
+            params={
+                'part': 'statistics',
+                'id': action.channel_id,
+                'key': action.api_key
+            }
+        )
+        data = response.json()
+        logger.info(f"YouTube API response for channel {action.channel_id}: {data}")
+
+        if 'items' in data and len(data['items']) > 0:
+            current_subscriber_count = int(data['items'][0]['statistics']['subscriberCount'])
+
+            if current_subscriber_count > action.last_subscriber_count:
+                logger.info(f"New subscription detected for {action.channel_id}. Triggering reaction.")
+                send_outlook_email(action)
+
+            action.last_subscriber_count = current_subscriber_count
+            action.last_checked = timezone.now()
+            action.save()
+
+def send_outlook_email(action):
+    email_reaction = OutlookEmailReaction.objects.filter(user=action.user).first()
+    
+    if email_reaction:
+        try:
+            subject = email_reaction.subject_template.format(subscriber_name="New Subscriber")
+            body = email_reaction.body_template.format(subscriber_name="New Subscriber")
+
+            response = requests.post(
+                'https://graph.microsoft.com/v1.0/me/sendMail',
+                headers={
+                    'Authorization': f'Bearer YOUR_ACCESS_TOKEN',
+                    'Content-Type': 'application/json'
+                },
+                json={
+                    'message': {
+                        'subject': subject,
+                        'body': {
+                            'contentType': 'Text',
+                            'content': body
+                        },
+                        'toRecipients': [
+                            {'emailAddress': {'address': email_reaction.user_email}}
+                        ]
+                    },
+                    'saveToSentItems': 'true'
+                }
+            )
+            if response.status_code == 202:
+                logger.info(f"Email sent successfully to {email_reaction.user_email}")
+            else:
+                logger.error(f"Failed to send email. Response: {response.json()}")
+
+        except Exception as e:
+            logger.error(f"An error occurred while sending email: {e}")

@@ -2,9 +2,9 @@ import requests
 from rest_framework import viewsets, permissions, status
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from .models import YouTubeAction, SpotifyPlaylistReaction
-from .serializers import YouTubeActionSerializer, SpotifyPlaylistReactionSerializer
-from .tasks import check_youtube_video_upload, check_youtube_watch
+from .models import *
+from .serializers import *
+from .tasks import *
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
 
@@ -74,3 +74,25 @@ class YouTubeChannelSetupView(APIView):
 
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+class YouTubeSubscriptionActionView(APIView):
+    def post(self, request):
+        serializer = YouTubeSubscriptionActionSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class OutlookEmailReactionView(APIView):
+    def post(self, request):
+        serializer = OutlookEmailReactionSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class TriggerYouTubeCheckView(APIView):
+    def post(self, request):
+        logger.info("Manually triggering YouTube subscription check")
+        check_youtube_subscription()
+        return Response({"message": "YouTube subscription check triggered"}, status=status.HTTP_200_OK)

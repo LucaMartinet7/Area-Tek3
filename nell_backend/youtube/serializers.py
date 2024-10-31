@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import YouTubeAction, SpotifyPlaylistReaction
+from .models import *
 
 class YouTubeActionSerializer(serializers.ModelSerializer):
     class Meta:
@@ -9,4 +9,14 @@ class YouTubeActionSerializer(serializers.ModelSerializer):
 class SpotifyPlaylistReactionSerializer(serializers.ModelSerializer):
     class Meta:
         model = SpotifyPlaylistReaction
+        fields = '__all__'
+
+class YouTubeSubscriptionActionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = YouTubeSubscriptionAction
+        fields = '__all__'
+
+class OutlookEmailReactionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = OutlookEmailReaction
         fields = '__all__'

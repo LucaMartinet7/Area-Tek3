@@ -1,6 +1,6 @@
 import requests
 import logging
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from googleapiclient.discovery import build
 from google.oauth2.credentials import Credentials
 from .models import GmailReceivedAction, TwitchChatReaction, SpotifySongReaction
@@ -69,7 +69,7 @@ def check_gmail_for_new_emails():
     for action in actions:
         user = action.user
         service = initialize_gmail_service(action.access_token)
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
         start_time = (now - timedelta(minutes=1)).isoformat() + 'Z'
 
         try:
