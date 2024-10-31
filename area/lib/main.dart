@@ -9,8 +9,11 @@ import 'web/twitch_page.dart';
 import 'web/google_page.dart';
 import 'web/youtube_page.dart';
 import 'web/microsoft_page.dart';
+import 'web/route_guard.dart';
+import 'package:url_strategy/url_strategy.dart';
 
 void main() {
+  setPathUrlStrategy();
   runApp(const MyApp());
 }
 
@@ -24,15 +27,14 @@ class MyApp extends StatelessWidget {
       routes: {
         '/login': (context) => const LoginPage(),
         '/register': (context) => const RegisterPage(),
-        '/dashboard': (context) => const DashboardPage(),
-        '/settings': (context) => SettingsPage(),
-        // '/logout': (context) => const LogoutPage(),
-        '/spotify': (context) => const SpotifyPage(),
-        '/twitch': (context) => const TwitchPage(),
-        '/google': (context) => const GooglePage(),
-        '/youtube': (context) => const YoutubePage(),
-        '/microsoft': (context) => const MicrosoftPage(),
-        '/about': (context) => const AboutPage(),
+        '/dashboard': (context) => RouteGuard(child: const DashboardPage()),
+        '/settings': (context) => RouteGuard(child: SettingsPage()),
+        '/spotify': (context) => RouteGuard(child: const SpotifyPage()),
+        '/twitch': (context) => RouteGuard(child: const TwitchPage()),
+        '/google': (context) => RouteGuard(child: const GooglePage()),
+        '/youtube': (context) => RouteGuard(child: const YoutubePage()),
+        '/microsoft': (context) => RouteGuard(child: const MicrosoftPage()),
+        '/about': (context) => RouteGuard(child: const AboutPage()),
       },
     );
   }

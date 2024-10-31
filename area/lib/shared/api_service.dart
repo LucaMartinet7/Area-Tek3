@@ -2,6 +2,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 Future<http.Response> postRequest({
   required String url,
@@ -33,7 +34,18 @@ Future<void> login({
   if (!context.mounted) return;
 
   if (response.statusCode == 200) {
-    Navigator.pushNamed(context, '/dashboard');
+    try {
+      await obtainAndSaveToken(username, password);
+      if (context.mounted) {
+        Navigator.pushReplacementNamed(context, '/dashboard');
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to obtain token: $e')),
+        );
+      }
+    }
   } else {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text('Login failed: ${response.statusCode}')),
@@ -70,12 +82,53 @@ Future<void> register({
   }
 }
 
-Future<void> launchURL(String url) async {
-    final Uri uri = Uri.parse(url);
-    if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
-      throw 'Could not launch $url';
-    }
+Future<void> obtainAndSaveToken(String username, String password) async {
+  final response = await http.post(
+    Uri.parse('http://127.0.0.1:8000/api/auth/token/'),
+    headers: {'Content-Type': 'application/json'},
+    body: jsonEncode({'username': username, 'password': password}),
+  );
+
+  if (response.statusCode == 200) {
+    final data = jsonDecode(response.body);
+    final accessToken = data['access'];
+    final refreshToken = data['refresh'];
+
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('access_token', accessToken);
+    await prefs.setString('refresh_token', refreshToken);
+  } else {
+    throw Exception('Failed to obtain token');
   }
+}
+
+Future<bool> isTokenValid(String refreshToken) async {
+  final response = await http.post(
+    Uri.parse('http://127.0.0.1:8000/api/auth/token/refresh/'),
+    headers: {
+      'Content-Type': 'application/json',
+      'accept': 'application/json',
+    },
+    body: jsonEncode({'refresh': refreshToken}),
+  );
+
+  if (response.statusCode == 200) {
+    jsonDecode(response.body);
+    return true;
+  } else {
+    return false;
+  }
+}
+
+Future<void> logout(BuildContext context) async {
+  final prefs = await SharedPreferences.getInstance();
+  await prefs.remove('access_token');
+  await prefs.remove('refresh_token');
+
+  if (context.mounted) {
+    Navigator.pushReplacementNamed(context, '/login');
+  }
+}
 
 Future<List<String>> fetchActions() async {
   final response = await http.get(Uri.parse('http://127.0.0.1:8000/api/actions/'));
@@ -96,5 +149,12 @@ Future<List<String>> fetchReactions() async {
     return data.map((reaction) => reaction.toString()).toList();
   } else {
     throw Exception('Failed to load reactions');
+  }
+}
+
+Future<void> launchURL(String url) async {
+  final Uri uri = Uri.parse(url);
+  if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
+    throw 'Could not launch $url';
   }
 }
