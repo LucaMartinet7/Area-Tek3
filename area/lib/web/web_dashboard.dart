@@ -4,7 +4,6 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import '../shared/service_box.dart';
 import 'web_nav_bar.dart';
-import 'package:flutter/services.dart' show rootBundle;
 
 class Service {
   final String name;

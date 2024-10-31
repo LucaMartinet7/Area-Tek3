@@ -9,8 +9,10 @@ import 'web/twitch_page.dart';
 import 'web/google_page.dart';
 import 'web/youtube_page.dart';
 import 'web/microsoft_page.dart';
+import 'package:url_strategy/url_strategy.dart';
 
 void main() {
+  setPathUrlStrategy();
   runApp(const MyApp());
 }
 
