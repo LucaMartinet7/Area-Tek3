@@ -18,12 +18,10 @@ schema_view = get_schema_view(
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/auth/', include('authentication.urls')),
-    path('api/spotifys/', include('spotifys.urls')),
-    path('api/open_weather/', include('open_weather.urls')),
-    path('api/microsofts/', include('microsofts.urls')),
-    path('api/youtube/', include('youtube.urls')),
-    path('api/twitchs/', include('twitchs.urls')),
-    path('api/integrations/', include('integrations.urls')),
+    #path('api/spotifys/', include('spotifys.urls')),
+    #path('api/microsofts/', include('microsofts.urls')),
+    #path('api/youtube/', include('youtube.urls')),
+    #path('api/twitchs/', include('twitchs.urls')),
 
     path('swagger/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
     path('redoc/', schema_view.with_ui('redoc', cache_timeout=0), name='schema-redoc'),

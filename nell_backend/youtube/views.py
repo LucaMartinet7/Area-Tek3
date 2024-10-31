@@ -1,65 +1,76 @@
-from django.shortcuts import redirect
-from django.http import JsonResponse
-from google_auth_oauthlib.flow import Flow
-from googleapiclient.discovery import build
-from django.conf import settings
+import requests
+from rest_framework import viewsets, permissions, status
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from .models import YouTubeAction, SpotifyPlaylistReaction
+from .serializers import YouTubeActionSerializer, SpotifyPlaylistReactionSerializer
+from .tasks import check_youtube_video_upload, check_youtube_watch
+from drf_yasg.utils import swagger_auto_schema
+from drf_yasg import openapi
 
-def youtube_login(request):
-    flow = Flow.from_client_config(
-        {
-            "web": {
-                "client_id": settings.YOUTUBE_CLIENT_ID,
-                "client_secret": settings.YOUTUBE_CLIENT_SECRET,
-                "redirect_uris": [settings.YOUTUBE_REDIRECT_URI],
-                "auth_uri": "https://accounts.google.com/o/oauth2/auth",
-                "token_uri": "https://oauth2.googleapis.com/token",
-            }
-        },
-        scopes=settings.YOUTUBE_SCOPES
+class CheckYouTubeVideoUploadView(APIView):
+    def post(self, request):
+        """Check if the user uploaded a new YouTube video and create a Spotify playlist if so."""
+        try:
+            check_youtube_video_upload()
+            return Response({"message": "YouTube video upload check executed successfully."}, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+class CheckYouTubeWatchView(APIView):
+    def post(self, request):
+        """Check if the user is watching a YouTube video and play a Spotify track if so."""
+        try:
+            check_youtube_watch()
+            return Response({"message": "YouTube watch activity check executed successfully."}, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+class YouTubeActionViewSet(viewsets.ModelViewSet):
+    queryset = YouTubeAction.objects.all()
+    serializer_class = YouTubeActionSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        return self.queryset.filter(user=self.request.user)
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+class SpotifyPlaylistReactionViewSet(viewsets.ModelViewSet):
+    queryset = SpotifyPlaylistReaction.objects.all()
+    serializer_class = SpotifyPlaylistReactionSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        return self.queryset.filter(user=self.request.user)
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+class YouTubeChannelSetupView(APIView):
+    @swagger_auto_schema(
+        request_body=YouTubeActionSerializer,
+        responses={200: openapi.Response('YouTube channel setup saved successfully.')}
     )
-    
-    authorization_url, state = flow.authorization_url(access_type='offline')
-    request.session['state'] = state
-    return redirect(authorization_url)
+    def post(self, request):
+        """Save YouTube channel setup details."""
+        serializer = YouTubeActionSerializer(data=request.data)
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-def youtube_callback(request):
-    flow = Flow.from_client_config(
-        {
-            "web": {
-                "client_id": settings.YOUTUBE_CLIENT_ID,
-                "client_secret": settings.YOUTUBE_CLIENT_SECRET,
-                "redirect_uris": [settings.YOUTUBE_REDIRECT_URI],
-                "auth_uri": "https://accounts.google.com/o/oauth2/auth",
-                "token_uri": "https://oauth2.googleapis.com/token",
-            }
-        },
-        scopes=settings.YOUTUBE_SCOPES
-    )
-    
-    flow.fetch_token(authorization_response=request.build_absolute_uri())
-    credentials = flow.credentials
+        channel_id = serializer.validated_data.get("channel_id")
+        api_key = serializer.validated_data.get("api_key")
+        action_type = serializer.validated_data.get("action_type")
 
-    request.session['youtube_credentials'] = credentials_to_dict(credentials)
+        try:
+            YouTubeAction.objects.create(
+                user=request.user,
+                channel_id=channel_id,
+                api_key=api_key,
+                action_type=action_type
+            )
+            return Response({"message": "YouTube channel setup saved successfully."}, status=status.HTTP_200_OK)
 
-    return JsonResponse({'status': 'success', 'credentials': credentials_to_dict(credentials)})
-
-def credentials_to_dict(credentials):
-    return {
-        'token': credentials.token,
-        'refresh_token': credentials.refresh_token,
-        'token_uri': credentials.token_uri,
-        'client_id': credentials.client_id,
-        'client_secret': credentials.client_secret,
-        'scopes': credentials.scopes
-    }
-
-def get_youtube_channels(request):
-    credentials = request.session.get('youtube_credentials')
-    if not credentials:
-        return JsonResponse({'error': 'User not authenticated'}, status=401)
-
-    youtube = build('youtube', 'v3', credentials=credentials)
-    request = youtube.channels().list(part='snippet,contentDetails', mine=True)
-    response = request.execute()
-    
-    return JsonResponse(response)
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

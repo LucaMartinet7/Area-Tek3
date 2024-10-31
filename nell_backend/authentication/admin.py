@@ -1,5 +1,6 @@
 from django.contrib import admin
-from .models import UserToken
+from .models import SocialUser
 
 # Register your models here.
-admin.site.register(UserToken)
+admin.site.register(SocialUser)
+

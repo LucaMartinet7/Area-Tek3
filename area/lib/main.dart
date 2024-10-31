@@ -6,11 +6,9 @@ import 'settings_page.dart';
 import 'about_page.dart';
 import 'web/spotify_page.dart';
 import 'web/twitch_page.dart';
-import 'web/weather_page.dart';
-import 'web/microsoft_page.dart';
-import 'web/youtube_page.dart';
 import 'web/google_page.dart';
-
+import 'web/youtube_page.dart';
+import 'web/microsoft_page.dart';
 
 void main() {
   runApp(const MyApp());
@@ -34,7 +32,6 @@ class MyApp extends StatelessWidget {
         '/google': (context) => const GooglePage(),
         '/youtube': (context) => const YoutubePage(),
         '/microsoft': (context) => const MicrosoftPage(),
-        '/weather': (context) => const WeatherPage(),
         '/about': (context) => const AboutPage(),
       },
     );
