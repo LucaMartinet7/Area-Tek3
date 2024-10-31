@@ -4,11 +4,12 @@ import 'shared/register_form.dart';
 import 'shared/dashboard_page.dart';
 import 'settings_page.dart';
 import 'about_page.dart';
-import 'web/spotify_page.dart';
-import 'web/twitch_page.dart';
-import 'web/google_page.dart';
-import 'web/youtube_page.dart';
-import 'web/microsoft_page.dart';
+import 'shared/spotify_area.dart';
+import 'shared/twitch_area.dart';
+import 'shared/google_area.dart';
+import 'shared/youtube_area.dart';
+import 'shared/microsoft_area.dart';
+import 'mobile/mobile_account.dart';
 import 'package:url_strategy/url_strategy.dart';
 
 void main() {
@@ -35,6 +36,7 @@ class MyApp extends StatelessWidget {
         '/youtube': (context) => const YoutubePage(),
         '/microsoft': (context) => const MicrosoftPage(),
         '/about': (context) => const AboutPage(),
+        '/account': (context) => const MobileAccount(),
       },
     );
   }

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:tuple/tuple.dart';
-import 'area_page.dart';
+import 'package:flutter/foundation.dart';
+import '../web/area_page.dart';
+import '../mobile/mobile_area.dart';
 
 class SpotifyPage extends StatelessWidget {
   const SpotifyPage({super.key});
@@ -12,9 +14,16 @@ class SpotifyPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ActionReactionPage(
+    if (kIsWeb) {
+      return ActionReactionPage(
+        title: 'Spotify',
+        area: list,
+      );
+    } else {
+     return MobileActionReactionPage(
       title: 'Spotify',
-      area: list,
-    );
+        area: list,
+      );
+    }
   }
 }
