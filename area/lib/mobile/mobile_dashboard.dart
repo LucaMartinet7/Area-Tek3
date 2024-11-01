@@ -46,16 +46,13 @@ class MobileDashboard extends StatelessWidget {
                   margin: const EdgeInsets.symmetric(vertical: 30.0),
                   child: Container(
                     constraints: const BoxConstraints(
-                      maxWidth: 400,
-                      maxHeight: 80,
+                      maxWidth: 350,
+                      maxHeight: 70,
                     ),
-                    child: GestureDetector(
-                      onTap: service.isConnected ? () => handleConnect(context, service.route) : null,
-                      child: ServiceNameBox(
-                        logoPath: service.logoPath,
-                        onConnect: () => handleConnect(context, service.route),
-                        backgroundColors: service.isConnected ? service.colors : [Colors.grey],
-                      ),
+                    child: ServiceNameBox(
+                      logoPath: service.logoPath,
+                      onConnect: service.isConnected ? () => handleConnect(context, service.route) : () {},
+                      backgroundColors: service.isConnected ? service.colors : [Colors.grey],
                     ),
                   ),
                 ),

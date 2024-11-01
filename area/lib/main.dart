@@ -34,7 +34,7 @@ class MyApp extends StatelessWidget {
           } else if (snapshot.hasData && snapshot.data == true) {
             return const DashboardPage();
           } else {
-            return const LoginPage();
+            return const AboutPage();
           }
         },
       ),

@@ -14,50 +14,47 @@ class ServiceNameBox extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(8.0),
-      height: 150,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(10.0),
-      ),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Image.asset(
+    return GestureDetector(
+      onTap: onConnect,
+      child: Container(
+        height: 150,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(10.0),
+        ),
+        child: Stack(
+          children: [
+            Row(
+              children: backgroundColors.map((color) {
+                return Expanded(
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: color,
+                      borderRadius: backgroundColors.length == 1
+                          ? BorderRadius.circular(10.0)
+                          : backgroundColors.indexOf(color) == 0
+                              ? const BorderRadius.only(
+                                  topLeft: Radius.circular(10.0),
+                                  bottomLeft: Radius.circular(10.0),
+                                )
+                              : backgroundColors.indexOf(color) == backgroundColors.length - 1
+                                  ? const BorderRadius.only(
+                                      topRight: Radius.circular(10.0),
+                                      bottomRight: Radius.circular(10.0),
+                                    )
+                                  : BorderRadius.zero,
+                    ),
+                  ),
+                );
+              }).toList(),
+            ),
+            Center(
+              child: Image.asset(
                 logoPath,
                 height: 40,
               ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: Row(
-                  children: backgroundColors.map((color) {
-                    return Expanded(
-                      child: Container(
-                        height: 40,
-                        color: color,
-                      ),
-                    );
-                  }).toList(),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 10),
-          GestureDetector(
-            onTap: onConnect,
-            child: const Text(
-              'Connect',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
-              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

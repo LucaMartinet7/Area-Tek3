@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'web/web_nav_bar.dart';
+import '../shared/api_service.dart' show isLoggedIn;
 
 class AboutPage extends StatelessWidget {
   const AboutPage({super.key});
@@ -39,30 +40,41 @@ class AboutPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: const WebNavBar(),
-      backgroundColor: const Color(0xFFF1F4F6),
-      body: SafeArea(
-        child: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const SizedBox(height: 100),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: _textPadding),
-                child: _buildMainContent(),
+    return FutureBuilder<bool>(
+      future: isLoggedIn(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        } else if (snapshot.hasError) {
+          return const Center(child: Text('Error checking user status'));
+        } else {
+          return Scaffold(
+            appBar: snapshot.data == true ? const WebNavBar() : null,
+            backgroundColor: const Color(0xFFF1F4F6),
+            body: SafeArea(
+              child: SingleChildScrollView(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const SizedBox(height: 100),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: _textPadding),
+                      child: _buildMainContent(),
+                    ),
+                    const SizedBox(height: 20),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: _textPadding),
+                      child: _buildRegisterSection(context),
+                    ),
+                    const SizedBox(height: 80),
+                    _buildDownloadSection(),
+                  ],
+                ),
               ),
-              const SizedBox(height: 20),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: _textPadding),
-                child: _buildRegisterSection(context),
-              ),
-              const SizedBox(height: 80),
-              _buildDownloadSection(),
-            ],
-          ),
-        ),
-      ),
+            ),
+          );
+        }
+      },
     );
   }
 

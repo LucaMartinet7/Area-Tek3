@@ -25,7 +25,7 @@ class ServiceBox extends StatelessWidget {
         children: [
           Image.asset(
             logoPath,
-            height: 50,
+            height: 40,
           ),
           const SizedBox(width: 10),
           GestureDetector(

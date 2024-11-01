@@ -10,7 +10,7 @@ class MobileLogin extends StatefulWidget {
 }
 
 class MobileLoginState extends State<MobileLogin> {
-  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _nameController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
 
   @override
@@ -50,14 +50,14 @@ class MobileLoginState extends State<MobileLogin> {
                       ),
                     ),
                     const SizedBox(height: 20),
-                    EmailField(controller: _emailController),
+                    NameField(controller: _nameController),
                     const SizedBox(height: 20),
                     PasswordField(controller: _passwordController),
                     const SizedBox(height: 20),
                     const SocialLoginButtons(),
                     const SizedBox(height: 20),
                      LoginButton(
-                       nameController: _emailController,
+                       nameController: _nameController,
                        passwordController: _passwordController,
                      ),
                   ],
