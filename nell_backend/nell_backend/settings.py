@@ -80,7 +80,12 @@ OAUTH_SCOPES = {
     'github': 'user:email',
     'google': 'openid email profile',
     'discord': 'identify email',
-    'spotify': 'user-read-email',
+    'spotify': [
+        'user-read-email',
+        'user-modify-playback-state',
+        'user-read-playback-state',
+        'user-read-currently-playing',
+    ],
     'twitch': 'user:read:email',
     'reddit': 'identity',
 }
@@ -102,7 +107,7 @@ INSTALLED_APPS = [
     #'microsofts',
     #'twitchs',
     #'youtube',
-    'googles',
+    'googlies',
     'drf_yasg',
     'allauth',
     'allauth.account',

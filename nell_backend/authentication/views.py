@@ -56,7 +56,7 @@ PROVIDERS = {
         'auth_url': 'https://accounts.spotify.com/authorize',
         'token_url': 'https://accounts.spotify.com/api/token',
         'data_url': 'https://api.spotify.com/v1/me',
-        'scope': 'user-read-private',
+        'scope': 'user-read-email user-modify-playback-state user-read-playback-state user-read-currently-playing',
     },
     'twitch': {
         'client_id': settings.TWITCH_CLIENT_ID,
@@ -71,7 +71,7 @@ PROVIDERS = {
 # Base callback URI with a placeholder for the provider
 INTERNAL_REDIRECT_URI_TEMPLATE = 'http://127.0.0.1:8000/api/auth/{provider}/callback/'
 
-class UserInfoView(APIView):
+class UserInfoView(APIView): #add providers
     def get(self, request, username):
         try:
             user = User.objects.get(username=username)
@@ -192,7 +192,11 @@ class OAuthCallbackView(APIView):
 
         provider_id = user_data.get('id')
         provider_username = user_data.get('login')
-        email = user_data.get('email')
+        email = user_data.get('email', None)
+        if not email:
+            print("Email not provided by the provider, setting default email")
+            email = f"{provider_username}@example.com" if provider_username else f"user_{provider_id}@example.com"
+
         username = provider_username or email or get_random_string(10)
 
         # Check if user is already authenticated
@@ -225,7 +229,8 @@ class OAuthCallbackView(APIView):
                 user=user, provider=provider, provider_id=provider_id,
                 access_token=access_token, provider_username=username
             )
-
+            # Create a persistent token for the new user
+            PersistentToken.objects.create(user=user)
         print("Logging in user:", user.username)
         login(request, user, backend='django.contrib.auth.backends.ModelBackend')
 

@@ -22,7 +22,7 @@ class TwitchChatReaction(models.Model):
 
 class SpotifySongReaction(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    song_uri = models.CharField(max_length=100, default="spotify:track:60nZcImufyMA1MKQY3dcCH")
+    song_uri = models.CharField(max_length=100, default="spotify:track:4KYS9GK68yeuUJ8vJfPxrq")
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):

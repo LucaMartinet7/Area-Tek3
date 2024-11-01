@@ -3,7 +3,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from .models import GmailReceivedAction, TwitchChatReaction, SpotifySongReaction
 from .serializers import GmailReceivedActionSerializer, GmailCheckRequestSerializer
-from .tasks import *
+from .tasks import run_spotify_reaction, run_twitch_reaction, check_gmail_for_spotify, check_gmail_for_twitch
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
 
@@ -66,15 +66,19 @@ class CheckGmailTwitch(APIView):
             return Response("error: status 500" , status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 class RunSpotifyReaction(APIView):
+    permission_classes = [permissions.IsAuthenticated]
     def post(self, request):
-        if run_spotify_reaction() == 0: 
+        user = request.user
+        if run_spotify_reaction(user) == 0: 
             return Response({"message": "Spotify reaction executed successfully."}, status=status.HTTP_200_OK)
         else:
             return Response("error: status 500" , status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-        
+    
 class RunTwitchReaction(APIView):
+    permission_classes = [permissions.IsAuthenticated]
     def post(self, request):
-        if run_twitch_reaction() == 0: 
+        user = request.user
+        if run_twitch_reaction(user) == 0: 
             return Response({"message": "Twitch reaction executed successfully."}, status=status.HTTP_200_OK)
         else:
             return Response("error: status 500" , status=status.HTTP_500_INTERNAL_SERVER_ERROR)
