@@ -15,6 +15,8 @@ DEBUG = os.getenv('DEBUG', 'False') == 'True'
 
 ALLOWED_HOSTS = [
     '192.168.0.123',
+    '127.0.0.1',
+    'localhost',
 ]
 
 SITE_ID = 3

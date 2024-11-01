@@ -76,7 +76,11 @@ class UserInfoView(APIView):
         try:
             user = User.objects.get(username=username)
             has_token = PersistentToken.user_has_token(user)
-            return Response({"has_token": has_token}, status=status.HTTP_200_OK)
+            return Response({
+                "username": user.username,
+                "email": user.email,
+                "has_token": has_token
+            }, status=status.HTTP_200_OK)
         except User.DoesNotExist:
             return Response({"error": "User not found"}, status=status.HTTP_404_NOT_FOUND)
 
