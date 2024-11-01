@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../shared/service_box.dart';
 import 'web_nav_bar.dart';
 
@@ -9,17 +10,16 @@ class Service {
   final String name;
   final String logoPath;
   final bool isConnected;
+  final String description; // Add description field
 
-  Service(this.name, this.logoPath, this.isConnected);
+  Service(this.name, this.logoPath, this.isConnected, this.description);
 }
 
 class UserProfile {
   final String username;
   final String email;
   final String profileImagePath;
-
   UserProfile({required this.username, required this.email, required this.profileImagePath});
-
   factory UserProfile.fromJson(Map<String, dynamic> json) {
     return UserProfile(
       username: json['username'],
@@ -32,9 +32,8 @@ class UserProfile {
 class WebDashboard extends StatelessWidget {
   const WebDashboard({super.key});
 
-  Future<UserProfile> fetchUserProfile() async {
-    final response = await http.get(Uri.parse('http://127.0.0.1:8000/api/auth/dj-rest-auth/user/'));
-
+  Future<UserProfile> fetchUserProfile(String username) async {
+    final response = await http.get(Uri.parse('http://127.0.0.1:8000/api/auth/auth/user-info/$username/'));
     if (response.statusCode == 200) {
       return UserProfile.fromJson(json.decode(response.body));
     } else {
@@ -42,13 +41,18 @@ class WebDashboard extends StatelessWidget {
     }
   }
 
+  Future<String?> getUsername() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString('username');
+  }
+
   @override
   Widget build(BuildContext context) {
     final services = [
-      Service('Spotify', 'assets/images/spotify.png', true),
-      Service('Twitch', 'assets/images/twitch.png', false),
-      Service('Google', 'assets/images/google.png', true),
-      Service('Microsoft', 'assets/images/microsoft.png', true),
+      Service('Spotify', 'assets/images/spotify.png', true, 'Stream music and podcasts.'),
+      Service('Twitch', 'assets/images/twitch.png', false, 'Watch live streams and gaming videos.'),
+      Service('Google', 'assets/images/google.png', true, 'Search the web and use various Google services.'),
+      Service('Microsoft', 'assets/images/microsoft.png', true, 'Access Microsoft services and products.'),
     ];
 
     void handleConnect(String serviceName) {
@@ -62,35 +66,47 @@ class WebDashboard extends StatelessWidget {
       body: Center(
         child: Padding(
           padding: const EdgeInsets.all(16.0),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _buildProfile(),
-              const SizedBox(width: 16),
-              _buildServiceBoxes(services, handleConnect),
-            ],
+          child: FutureBuilder<String?>(
+            future: getUsername(),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const CircularProgressIndicator();
+              } else if (snapshot.hasError || !snapshot.hasData) {
+                return const Text('Failed to load username');
+              } else {
+                final username = snapshot.data!;
+                return Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _buildProfile(context, username),
+                    const SizedBox(width: 16),
+                    _buildServiceBoxes(services, handleConnect),
+                  ],
+                );
+              }
+            },
           ),
         ),
       ),
     );
   }
 
-  Widget _buildProfile() {
+  Widget _buildProfile(BuildContext context, String username) {
     return Expanded(
       flex: 1,
       child: Container(
         padding: const EdgeInsets.all(16.0),
         decoration: _boxDecoration(),
         child: FutureBuilder<UserProfile>(
-          future: fetchUserProfile(),
+          future: fetchUserProfile(username),
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
               return const CircularProgressIndicator();
             } else if (snapshot.hasError) {
               return _buildProfileContent(
                 CircleAvatar(
-                  radius: 50,
-                  child: const Icon(Icons.person, size: 50),
+                  radius: 100,
+                  child: const Icon(Icons.person, size: 70),
                 ),
                 'Error',
                 'error@example.com',
@@ -98,8 +114,8 @@ class WebDashboard extends StatelessWidget {
             } else if (!snapshot.hasData) {
               return _buildProfileContent(
                 CircleAvatar(
-                  radius: 50,
-                  child: const Icon(Icons.person, size: 50),
+                  radius: 100,
+                  child: const Icon(Icons.person, size: 70),
                 ),
                 'No Data',
                 'nodata@example.com',
@@ -108,8 +124,8 @@ class WebDashboard extends StatelessWidget {
               final userProfile = snapshot.data!;
               return _buildProfileContent(
                 CircleAvatar(
-                  radius: 50,
-                  backgroundImage: NetworkImage(userProfile.profileImagePath),
+                  radius: 100,
+                  child: const Icon(Icons.person, size: 150),
                 ),
                 userProfile.username,
                 userProfile.email,
@@ -125,23 +141,23 @@ class WebDashboard extends StatelessWidget {
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
+        const SizedBox(height: 30),
         avatar,
-        const SizedBox(height: 10),
+        const SizedBox(height: 30),
         Text(
-          username,
+          "Welcome $username !",
           style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
         ),
-        const SizedBox(height: 5),
+        const SizedBox(height: 30),
         Text(
           email,
-          style: const TextStyle(fontSize: 16, color: Colors.grey),
+          style: const TextStyle(fontSize: 18, color: Colors.grey),
         ),
       ],
     );
   }
 
-  Widget _buildServiceBoxes(
-      List<Service> services, void Function(String) handleConnect) {
+  Widget _buildServiceBoxes(List<Service> services, void Function(String) handleConnect) {
     return Expanded(
       flex: 1,
       child: Column(
@@ -162,14 +178,6 @@ class WebDashboard extends StatelessWidget {
     return BoxDecoration(
       color: Colors.white,
       borderRadius: BorderRadius.circular(10),
-      boxShadow: [
-        BoxShadow(
-          color: Colors.grey.withOpacity(0.5),
-          spreadRadius: 2,
-          blurRadius: 5,
-          offset: const Offset(0, 3),
-        ),
-      ],
     );
   }
 }
