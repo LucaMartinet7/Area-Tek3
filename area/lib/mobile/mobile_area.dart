@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:tuple/tuple.dart';
 import 'dart:math';
-import '../shared/shared_widgets.dart';
+import '../shared/area_rectangle.dart';
 import 'mobile_nav_bar.dart';
 
 class MobileActionReactionPage extends StatelessWidget {

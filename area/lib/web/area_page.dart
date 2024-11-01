@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:tuple/tuple.dart';
 import '../web/web_nav_bar.dart';
-import '../shared/shared_widgets.dart';
+import '../shared/area_rectangle.dart';
 
 import 'dart:math';
 

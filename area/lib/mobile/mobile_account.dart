@@ -2,6 +2,8 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import '../shared/service_box.dart';
 import 'mobile_nav_bar.dart';
+import '../shared/exit_button.dart';
+
 
 class Service {
   final String name;
@@ -32,6 +34,9 @@ class MobileAccount extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         automaticallyImplyLeading: false,
+        actions: [
+          buildExitButton(context),
+        ],
       ),
       body: Column(
         children: [
