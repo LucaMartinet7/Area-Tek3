@@ -82,7 +82,7 @@ Future<void> register({
 
   if (!context.mounted) return;
 
-  if (response.statusCode == 200) {
+  if (response.statusCode == 201) {
     Navigator.pushNamed(context, '/login');
   } else {
     ScaffoldMessenger.of(context).showSnackBar(
@@ -93,7 +93,7 @@ Future<void> register({
 
 Future<void> obtainAndSaveToken(String username, String password) async {
   final response = await http.post(
-    Uri.parse(await getApiUrl('auth/token/'),),
+    Uri.parse(await getApiUrl('auth/token/')),
     headers: {'Content-Type': 'application/json'},
     body: jsonEncode({'username': username, 'password': password}),
   );
@@ -106,6 +106,7 @@ Future<void> obtainAndSaveToken(String username, String password) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('access_token', accessToken);
     await prefs.setString('refresh_token', refreshToken);
+    await prefs.setString('username', username); // Store the username
   } else {
     throw Exception('Failed to obtain token');
   }
@@ -166,4 +167,14 @@ Future<void> launchURL(String url) async {
   if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
     throw 'Could not launch $url';
   }
+}
+
+Future<bool> isLoggedIn() async {
+  final prefs = await SharedPreferences.getInstance();
+  final accessToken = prefs.getString('access_token');
+  final refreshToken = prefs.getString('refresh_token');
+  if (accessToken != null && refreshToken != null) {
+    return true;
+  }
+  return false;
 }

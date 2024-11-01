@@ -12,6 +12,8 @@ import 'shared/microsoft_area.dart';
 import 'mobile/mobile_account.dart';
 import 'web/route_guard.dart';
 import 'package:url_strategy/url_strategy.dart';
+import 'shared/api_service.dart' show isLoggedIn;
+
 
 void main() {
   setPathUrlStrategy();
@@ -24,7 +26,18 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      initialRoute: '/login',
+      home: FutureBuilder<bool>(
+        future: isLoggedIn(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const CircularProgressIndicator();
+          } else if (snapshot.hasData && snapshot.data == true) {
+            return const DashboardPage();
+          } else {
+            return const LoginPage();
+          }
+        },
+      ),
       routes: {
         '/login': (context) => const LoginPage(),
         '/register': (context) => const RegisterPage(),
