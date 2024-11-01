@@ -13,8 +13,8 @@ from django.utils.crypto import get_random_string  # Import for generating fallb
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
 
-from .models import SocialUser
-from .serializers import RegisterSerializer, LoginSerializer, SocialUserSerializer
+from .models import SocialUser, PersistentToken
+from .serializers import RegisterSerializer, LoginSerializer, UserSerializer
 
 # OAuth configuration for each provider from settings
 PROVIDERS = {
@@ -71,6 +71,27 @@ PROVIDERS = {
 # Base callback URI with a placeholder for the provider
 INTERNAL_REDIRECT_URI_TEMPLATE = 'http://127.0.0.1:8000/api/auth/{provider}/callback/'
 
+class UserInfoView(APIView):
+    def get(self, request, username):
+        try:
+            user = User.objects.get(username=username)
+            has_token = PersistentToken.user_has_token(user)
+            return Response({"has_token": has_token}, status=status.HTTP_200_OK)
+        except User.DoesNotExist:
+            return Response({"error": "User not found"}, status=status.HTTP_404_NOT_FOUND)
+
+class UserLoginView(APIView):
+    def post(self, request):
+        username = request.data.get('username')
+        password = request.data.get('password')
+        user = authenticate(username=username, password=password)
+        
+        if user is not None:
+            token, created = PersistentToken.objects.get_or_create(user=user)
+            return Response({"token": str(token.token)}, status=status.HTTP_200_OK)
+        else:
+            return Response({"error": "Invalid credentials"}, status=status.HTTP_400_BAD_REQUEST)
+
 class RegisterView(APIView):
     @swagger_auto_schema(...)
     def post(self, request):
@@ -78,11 +99,11 @@ class RegisterView(APIView):
         serializer = RegisterSerializer(data=request.data)
         if serializer.is_valid():
             user = serializer.save()
+            PersistentToken.objects.create(user=user)
             print("User registered successfully:", user)
             return Response({"message": "User registered successfully"}, status=status.HTTP_201_CREATED)
         print("Registration errors:", serializer.errors)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
 
 class LoginView(APIView):
     @swagger_auto_schema(...)
