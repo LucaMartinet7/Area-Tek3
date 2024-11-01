@@ -167,3 +167,13 @@ Future<void> launchURL(String url) async {
     throw 'Could not launch $url';
   }
 }
+
+Future<bool> isLoggedIn() async {
+  final prefs = await SharedPreferences.getInstance();
+  final accessToken = prefs.getString('access_token');
+  final refreshToken = prefs.getString('refresh_token');
+  if (accessToken != null && refreshToken != null) {
+    return true;
+  }
+  return false;
+}
