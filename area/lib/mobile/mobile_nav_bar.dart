@@ -29,7 +29,7 @@ class MobileNavBar extends StatelessWidget {
             Navigator.pushNamed(context, '/dashboard');
             break;
           case 2:
-            Navigator.pushNamed(context, '/login');
+            Navigator.pushNamed(context, '/account');
             break;
         }
       },

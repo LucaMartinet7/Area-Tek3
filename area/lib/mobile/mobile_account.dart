@@ -2,6 +2,8 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import '../shared/service_box.dart';
 import 'mobile_nav_bar.dart';
+import '../shared/exit_button.dart';
+
 
 class Service {
   final String name;
@@ -20,7 +22,6 @@ class MobileAccount extends StatelessWidget {
       Service('Spotify', 'assets/images/spotify.png', true),
       Service('Twitch', 'assets/images/twitch.png', false),
       Service('Google', 'assets/images/google.png', true),
-      Service('YouTube', 'assets/images/deezer.png', false),
       Service('Microsoft', 'assets/images/microsoft.png', true),
     ];
 
@@ -32,8 +33,10 @@ class MobileAccount extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Dashboard'),
         automaticallyImplyLeading: false,
+        actions: [
+          buildExitButton(context),
+        ],
       ),
       body: Column(
         children: [
@@ -79,7 +82,7 @@ class MobileAccount extends StatelessWidget {
                   child: Center(
                     child: Container(
                       constraints: const BoxConstraints(
-                        maxHeight: 60, // Set a maximum height for the buttons
+                        maxHeight: 100, // Set a maximum height for the buttons
                       ),
                       child: ServiceBox(
                         logoPath: service.logoPath,

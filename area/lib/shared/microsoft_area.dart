@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:tuple/tuple.dart';
-import 'area_page.dart';
+import 'package:flutter/foundation.dart';
+import '../web/area_page.dart';
+import '../mobile/mobile_area.dart';
 
 class MicrosoftPage extends StatelessWidget {
   const MicrosoftPage({super.key});
@@ -13,9 +15,16 @@ class MicrosoftPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ActionReactionPage(
-      title: 'Microsoft',
-      area : list
-    );
+    if (kIsWeb) {
+      return ActionReactionPage(
+        title: 'Microsoft',
+        area: list,
+      );
+    } else {
+      return MobileActionReactionPage(
+        title: 'Microsoft',
+        area: list,
+      );
+    }
   }
 }
