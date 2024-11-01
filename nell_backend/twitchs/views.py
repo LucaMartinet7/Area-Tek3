@@ -2,8 +2,8 @@ import requests
 from rest_framework import viewsets, permissions, status
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from .models import TwitchLiveAction, BlueskyPostReaction
-from .serializers import TwitchLiveActionSerializer, BlueskyPostReactionSerializer, BlueskyUserIDRequestSerializer
+from .models import *
+from .serializers import *
 from .tasks import check_twitch_live
 from rest_framework import serializers
 from drf_yasg.utils import swagger_auto_schema
@@ -82,3 +82,47 @@ class GetBlueskyUserIDView(APIView):
 
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
+class TwitchFollowerActionViewSet(viewsets.ModelViewSet):
+    queryset = TwitchFollowerAction.objects.all()
+    serializer_class = TwitchFollowerActionSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        return self.queryset.filter(user=self.request.user)
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+class SpotifyPlaylistAddSongReactionViewSet(viewsets.ModelViewSet):
+    queryset = SpotifyPlaylistAddSongReaction.objects.all()
+    serializer_class = SpotifyPlaylistAddSongReactionSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        return self.queryset.filter(user=self.request.user)
+
+    def perform_create(self, serializer):
+        access_token = serializer.validated_data['spotify_access_token']
+
+        # Fetch user's first playlist ID from Spotify
+        response = requests.get(
+            'https://api.spotify.com/v1/me/playlists',
+            headers={'Authorization': f'Bearer {access_token}'}
+        )
+
+        if response.status_code == 200:
+            playlists = response.json().get('items', [])
+            if playlists:
+                first_playlist_id = playlists[0]['id']
+                
+                # Save the reaction with the user, playlist ID, and other validated data
+                serializer.save(
+                    user=self.request.user,
+                    spotify_playlist_id=first_playlist_id
+                )
+            else:
+                raise ValueError("No playlists found for this user.")
+        else:
+            raise ValueError("Failed to fetch Spotify playlists.")
+

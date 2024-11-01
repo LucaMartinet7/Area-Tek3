@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import TwitchLiveAction, BlueskyPostReaction
+from .models import *
 
 class TwitchLiveActionSerializer(serializers.ModelSerializer):
     class Meta:
@@ -14,3 +14,13 @@ class BlueskyPostReactionSerializer(serializers.ModelSerializer):
 class BlueskyUserIDRequestSerializer(serializers.Serializer):
     bluesky_handle = serializers.CharField(max_length=255)
     bluesky_password = serializers.CharField(max_length=255)
+
+class TwitchFollowerActionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = TwitchFollowerAction
+        fields = '__all__'
+
+class SpotifyPlaylistAddSongReactionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = SpotifyPlaylistAddSongReaction
+        fields = '__all__'
