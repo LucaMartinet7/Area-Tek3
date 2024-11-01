@@ -1,5 +1,7 @@
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -17,13 +19,21 @@ Future<http.Response> postRequest({
   return response;
 }
 
+Future<String> getApiUrl(String endpoint) async {
+  if (kIsWeb) {
+    return 'http://127.0.0.1:8000/api/$endpoint';
+  } else {
+    return 'http://192.168.0.123:8000/api/$endpoint'; //make sur the ip is correct and added to settings.py ALLOWED_HOSTS
+  }
+}
+
 Future<void> login({
   required BuildContext context,
   required String username,
   required String password,
 }) async {
   final response = await postRequest(
-    url: 'http://127.0.0.1:8000/api/auth/login/',
+    url: await getApiUrl('auth/login/'),
     headers: {'Content-Type': 'application/json'},
     body: {
       'username': username,
@@ -60,7 +70,7 @@ Future<void> register({
   required String email,
 }) async {
   final response = await postRequest(
-    url: 'http://127.0.0.1:8000/api/auth/register/',
+    url: await getApiUrl('auth/register/'),
     headers: {'Content-Type': 'application/json'},
     body: {
       'username': username,
@@ -84,7 +94,7 @@ Future<void> register({
 
 Future<void> obtainAndSaveToken(String username, String password) async {
   final response = await http.post(
-    Uri.parse('http://127.0.0.1:8000/api/auth/token/'),
+    Uri.parse(await getApiUrl('auth/token/'),),
     headers: {'Content-Type': 'application/json'},
     body: jsonEncode({'username': username, 'password': password}),
   );
@@ -104,7 +114,7 @@ Future<void> obtainAndSaveToken(String username, String password) async {
 
 Future<bool> isTokenValid(String refreshToken) async {
   final response = await http.post(
-    Uri.parse('http://127.0.0.1:8000/api/auth/token/refresh/'),
+    Uri.parse(await getApiUrl('auth/token/refresh/')),
     headers: {
       'Content-Type': 'application/json',
       'accept': 'application/json',
@@ -131,7 +141,7 @@ Future<void> logout(BuildContext context) async {
 }
 
 Future<List<String>> fetchActions() async {
-  final response = await http.get(Uri.parse('http://127.0.0.1:8000/api/actions/'));
+  final response = await http.get(Uri.parse(await getApiUrl('actions/')));
 
   if (response.statusCode == 200) {
     List<dynamic> data = json.decode(response.body);
@@ -142,7 +152,7 @@ Future<List<String>> fetchActions() async {
 }
 
 Future<List<String>> fetchReactions() async {
-  final response = await http.get(Uri.parse('http://127.0.0.1:8000/api/reactions/'));
+  final response = await http.get(Uri.parse(await getApiUrl('reactions/')));
 
   if (response.statusCode == 200) {
     List<dynamic> data = json.decode(response.body);
