@@ -156,6 +156,7 @@ def check_new_outlook_email(user_id, access_token):
                 }
             )
             if created or not email_obj.processed:
+                create_google_calendar_event(user_id, email_obj)
                 post_message_to_google_chat(user_id, email_obj)
                 email_obj.processed = True
                 email_obj.save()
