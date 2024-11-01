@@ -4,13 +4,17 @@ import 'shared/register_form.dart';
 import 'shared/dashboard_page.dart';
 import 'settings_page.dart';
 import 'about_page.dart';
-import 'web/spotify_page.dart';
-import 'web/twitch_page.dart';
-import 'web/google_page.dart';
-import 'web/youtube_page.dart';
-import 'web/microsoft_page.dart';
+import 'shared/spotify_area.dart';
+import 'shared/twitch_area.dart';
+import 'shared/google_area.dart';
+import 'shared/youtube_area.dart';
+import 'shared/microsoft_area.dart';
+import 'mobile/mobile_account.dart';
+import 'web/route_guard.dart';
+import 'package:url_strategy/url_strategy.dart';
 
 void main() {
+  setPathUrlStrategy();
   runApp(const MyApp());
 }
 
@@ -24,15 +28,15 @@ class MyApp extends StatelessWidget {
       routes: {
         '/login': (context) => const LoginPage(),
         '/register': (context) => const RegisterPage(),
-        '/dashboard': (context) => const DashboardPage(),
-        '/settings': (context) => SettingsPage(),
-        // '/logout': (context) => const LogoutPage(),
-        '/spotify': (context) => const SpotifyPage(),
-        '/twitch': (context) => const TwitchPage(),
-        '/google': (context) => const GooglePage(),
-        '/youtube': (context) => const YoutubePage(),
-        '/microsoft': (context) => const MicrosoftPage(),
-        '/about': (context) => const AboutPage(),
+        '/dashboard': (context) => RouteGuard(child: const DashboardPage()),
+        '/settings': (context) => RouteGuard(child: SettingsPage()),
+        '/spotify': (context) => RouteGuard(child: const SpotifyPage()),
+        '/twitch': (context) => RouteGuard(child: const TwitchPage()),
+        '/google': (context) => RouteGuard(child: const GooglePage()),
+        '/youtube': (context) => RouteGuard(child: const YoutubePage()),
+        '/microsoft': (context) => RouteGuard(child: const MicrosoftPage()),
+        '/about': (context) => RouteGuard(child: const AboutPage()),
+        '/account': (context) => RouteGuard(child: const MobileAccount()),
       },
     );
   }

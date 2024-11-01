@@ -1,7 +1,9 @@
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 Future<http.Response> postRequest({
   required String url,
@@ -16,13 +18,21 @@ Future<http.Response> postRequest({
   return response;
 }
 
+Future<String> getApiUrl(String endpoint) async {
+  if (kIsWeb) {
+    return 'http://127.0.0.1:8000/api/$endpoint';
+  } else {
+    return 'http://192.168.0.123:8000/api/$endpoint'; //make sur the ip is correct and added to settings.py ALLOWED_HOSTS
+  }
+}
+
 Future<void> login({
   required BuildContext context,
   required String username,
   required String password,
 }) async {
   final response = await postRequest(
-    url: 'http://127.0.0.1:8000/api/auth/login/',
+    url: await getApiUrl('auth/login/'),
     headers: {'Content-Type': 'application/json'},
     body: {
       'username': username,
@@ -33,7 +43,18 @@ Future<void> login({
   if (!context.mounted) return;
 
   if (response.statusCode == 200) {
-    Navigator.pushNamed(context, '/dashboard');
+    try {
+      await obtainAndSaveToken(username, password);
+      if (context.mounted) {
+        Navigator.pushReplacementNamed(context, '/dashboard');
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to obtain token: $e')),
+        );
+      }
+    }
   } else {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text('Login failed: ${response.statusCode}')),
@@ -48,7 +69,7 @@ Future<void> register({
   required String email,
 }) async {
   final response = await postRequest(
-    url: 'http://127.0.0.1:8000/api/auth/register/',
+    url: await getApiUrl('auth/register/'),
     headers: {'Content-Type': 'application/json'},
     body: {
       'username': username,
@@ -70,15 +91,56 @@ Future<void> register({
   }
 }
 
-Future<void> launchURL(String url) async {
-    final Uri uri = Uri.parse(url);
-    if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
-      throw 'Could not launch $url';
-    }
+Future<void> obtainAndSaveToken(String username, String password) async {
+  final response = await http.post(
+    Uri.parse(await getApiUrl('auth/token/'),),
+    headers: {'Content-Type': 'application/json'},
+    body: jsonEncode({'username': username, 'password': password}),
+  );
+
+  if (response.statusCode == 200) {
+    final data = jsonDecode(response.body);
+    final accessToken = data['access'];
+    final refreshToken = data['refresh'];
+
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('access_token', accessToken);
+    await prefs.setString('refresh_token', refreshToken);
+  } else {
+    throw Exception('Failed to obtain token');
   }
+}
+
+Future<bool> isTokenValid(String refreshToken) async {
+  final response = await http.post(
+    Uri.parse(await getApiUrl('auth/token/refresh/')),
+    headers: {
+      'Content-Type': 'application/json',
+      'accept': 'application/json',
+    },
+    body: jsonEncode({'refresh': refreshToken}),
+  );
+
+  if (response.statusCode == 200) {
+    jsonDecode(response.body);
+    return true;
+  } else {
+    return false;
+  }
+}
+
+Future<void> logout(BuildContext context) async {
+  final prefs = await SharedPreferences.getInstance();
+  await prefs.remove('access_token');
+  await prefs.remove('refresh_token');
+
+  if (context.mounted) {
+    Navigator.pushReplacementNamed(context, '/login');
+  }
+}
 
 Future<List<String>> fetchActions() async {
-  final response = await http.get(Uri.parse('http://127.0.0.1:8000/api/actions/'));
+  final response = await http.get(Uri.parse(await getApiUrl('actions/')));
 
   if (response.statusCode == 200) {
     List<dynamic> data = json.decode(response.body);
@@ -89,12 +151,19 @@ Future<List<String>> fetchActions() async {
 }
 
 Future<List<String>> fetchReactions() async {
-  final response = await http.get(Uri.parse('http://127.0.0.1:8000/api/reactions/'));
+  final response = await http.get(Uri.parse(await getApiUrl('reactions/')));
 
   if (response.statusCode == 200) {
     List<dynamic> data = json.decode(response.body);
     return data.map((reaction) => reaction.toString()).toList();
   } else {
     throw Exception('Failed to load reactions');
+  }
+}
+
+Future<void> launchURL(String url) async {
+  final Uri uri = Uri.parse(url);
+  if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
+    throw 'Could not launch $url';
   }
 }

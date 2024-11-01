@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:tuple/tuple.dart';
-import 'area_page.dart';
+import 'package:flutter/foundation.dart';
+import '../web/area_page.dart';
+import '../mobile/mobile_area.dart';
 
 class YoutubePage extends StatelessWidget {
   const YoutubePage({super.key});
@@ -12,9 +14,16 @@ class YoutubePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ActionReactionPage(
-      title: 'YouTube',
-      area : list
-    );
+    if (kIsWeb) {
+      return ActionReactionPage(
+        title: 'YouTube',
+        area: list,
+      );
+    } else {
+      return MobileActionReactionPage(
+        title: 'YouTube',
+        area: list,
+      );
+    }
   }
 }

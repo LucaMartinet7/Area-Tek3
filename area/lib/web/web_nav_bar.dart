@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../shared/exit_button.dart';
 
 class WebNavBar extends StatelessWidget implements PreferredSizeWidget {
   const WebNavBar({super.key});
@@ -8,13 +9,14 @@ class WebNavBar extends StatelessWidget implements PreferredSizeWidget {
     return Container(
       decoration: BoxDecoration(
         border: Border.all(
-          color: const Color.fromARGB(255, 140, 211, 255), width: 5
-        )
+          color: const Color.fromARGB(255, 140, 211, 255),
+          width: 5,
+        ),
       ),
       child: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        leading: _buildNavButton(context, 'assets/vectors/exit.png', '/login'),
+        leading: buildExitButton(context),
         flexibleSpace: Row(
           children: <Widget>[
             Expanded(
@@ -37,7 +39,7 @@ class WebNavBar extends StatelessWidget implements PreferredSizeWidget {
     );
   }
 
-  Widget _buildNavButton(BuildContext context, String assetPath, String route) {
+    Widget _buildNavButton(BuildContext context, String assetPath, String route) {
     return IconButton(
       onPressed: ModalRoute.of(context)?.settings.name == route
           ? null
@@ -46,7 +48,7 @@ class WebNavBar extends StatelessWidget implements PreferredSizeWidget {
         assetPath,
         width: 32,
         height: 32,
-        color: Color.fromARGB(255, 140, 211, 255),
+        color: const Color.fromARGB(255, 140, 211, 255),
       ),
     );
   }

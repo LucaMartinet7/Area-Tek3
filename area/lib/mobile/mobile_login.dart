@@ -56,10 +56,10 @@ class MobileLoginState extends State<MobileLogin> {
                     const SizedBox(height: 20),
                     const SocialLoginButtons(),
                     const SizedBox(height: 20),
-                    LoginButton(
-                      nameController: _emailController,
-                      passwordController: _passwordController,
-                    ),
+                     LoginButton(
+                       nameController: _emailController,
+                       passwordController: _passwordController,
+                     ),
                   ],
                 ),
               ),
