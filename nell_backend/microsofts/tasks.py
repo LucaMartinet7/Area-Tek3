@@ -10,45 +10,6 @@ from .models import *
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-def check_teams_message(user_id, access_token):
-    logger.info(f"Checking Microsoft Teams messages for user: {user_id}")
-    
-    url = f"https://graph.microsoft.com/v1.0/users/{user_id}/messages"
-    headers = {
-        'Authorization': f'Bearer {access_token}',
-        'Content-Type': 'application/json'
-    }
-    response = requests.get(url, headers=headers)
-    data = response.json()
-    
-    if response.status_code != 200:
-        logger.error(f"Error fetching Teams messages: {data}")
-        return None
-
-    messages = data.get('value', [])
-    for message in messages:
-        received_time = timezone.datetime.fromisoformat(message['receivedDateTime'].replace("Z", "+00:00"))
-        
-        if received_time > timezone.now() - timezone.timedelta(minutes=1): #checks if new message received in last min
-            message_obj, created = TeamsMessage.objects.get_or_create(
-                user_id=user_id,
-                message_id=message['id'],
-                defaults={
-                    'subject': message['subject'],
-                    'body_preview': message['bodyPreview'],
-                    'received_at': received_time,
-                    'processed': False
-                }
-            )
-
-            if created or not message_obj.processed:
-                create_google_calendar_event(user_id, message_obj)
-                message_obj.processed = True
-                message_obj.save()
-                break
-    else:
-        logger.info(f"No new messages for user {user_id}")
-
 def create_google_calendar_event(user_id, message):
     logger.info(f"Creating Google Calendar event for user {user_id} based on message: {message.subject}")
 
@@ -195,6 +156,7 @@ def check_new_outlook_email(user_id, access_token):
                 }
             )
             if created or not email_obj.processed:
+                create_google_calendar_event(user_id, email_obj)
                 post_message_to_google_chat(user_id, email_obj)
                 email_obj.processed = True
                 email_obj.save()

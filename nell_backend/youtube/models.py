@@ -25,3 +25,22 @@ class SpotifyPlaylistReaction(models.Model):
 
     def __str__(self):
         return f"{self.user.username} - Spotify Playlist: {self.playlist_name}"
+
+class YouTubeSubscriptionAction(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    channel_id = models.CharField(max_length=255)
+    api_key = models.CharField(max_length=255)
+    last_checked = models.DateTimeField(auto_now=True)
+    last_subscriber_count = models.PositiveIntegerField(default=0)
+
+    def __str__(self):
+        return f"YouTube Action for {self.user.username} - Channel: {self.channel_id}"
+
+class OutlookEmailReaction(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    user_email = models.EmailField()
+    subject_template = models.CharField(max_length=255, default="New Subscriber Alert: {subscriber_name}")
+    body_template = models.TextField(default="You have a new subscriber on your YouTube channel: {subscriber_name}.")
+
+    def __str__(self):
+        return f"Outlook Email Reaction for {self.user.username} - Email: {self.user_email}"

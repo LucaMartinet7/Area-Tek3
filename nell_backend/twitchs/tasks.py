@@ -1,9 +1,10 @@
 import requests
 import logging
+import random
+from django.utils import timezone
 from atproto import Client
-from .models import TwitchLiveAction, BlueskyPostReaction
+from .models import *
 
-# Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
@@ -43,3 +44,54 @@ def post_to_bluesky(reaction):
         logger.info(f"Posted to Bluesky: {post.uri}")
     except ValueError as e:
         logger.error(f"Failed to login to Bluesky: {e}")
+
+def check_twitch_new_follower():
+    actions = TwitchFollowerAction.objects.all()
+    for action in actions:
+        logger.info(f"Checking new followers for Twitch user ID: {action.twitch_user_id}")
+        
+        response = requests.get(
+            f'https://api.twitch.tv/helix/users/follows?to_id={action.twitch_user_id}',
+            headers={
+                'Client-ID': action.client_id,
+                'Authorization': f'Bearer {action.access_token}'
+            }
+        )
+        data = response.json()
+        logger.info(f"Twitch API response for user {action.twitch_user_id}: {data}")
+
+        if 'total' in data and data['total'] > action.last_follower_count:
+            logger.info("New follower detected. Triggering Spotify reaction.")
+            reaction = SpotifyPlaylistAddSongReaction.objects.filter(user=action.user).first()
+            if reaction:
+                add_song_to_spotify_playlist(reaction)
+
+            # Update last follower count
+            action.last_follower_count = data['total']
+            action.last_checked = timezone.now()
+            action.save()
+
+def add_song_to_spotify_playlist(reaction):
+    sample_tracks = [ #random tracks
+        'spotify:track:4uLU6hMCjMI75M1A2tKUQC',
+        'spotify:track:0VjIjW4GlUZAMYd2vXMi3b',
+        'spotify:track:1lDWb6b6ieDQ2xT7ewTC3G'
+    ]
+    random_track_uri = random.choice(sample_tracks)
+
+    try:
+        response = requests.post(
+            f'https://api.spotify.com/v1/playlists/{reaction.spotify_playlist_id}/tracks',
+            headers={
+                'Authorization': f'Bearer {reaction.spotify_access_token}',
+                'Content-Type': 'application/json'
+            },
+            json={'uris': [random_track_uri]}
+        )
+        if response.status_code == 201:
+            logger.info(f"Successfully added track to Spotify playlist {reaction.spotify_playlist_id}")
+        else:
+            logger.error(f"Failed to add track to Spotify playlist. Response: {response.json()}")
+
+    except Exception as e:
+        logger.error(f"An error occurred while adding track to Spotify playlist: {e}")

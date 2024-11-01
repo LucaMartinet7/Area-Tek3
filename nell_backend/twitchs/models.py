@@ -22,3 +22,22 @@ class BlueskyPostReaction(models.Model):
 
     def __str__(self):
         return f"{self.user.username} - Bluesky Post: {self.message}"
+
+class TwitchFollowerAction(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    twitch_user_id = models.CharField(max_length=255)
+    client_id = models.CharField(max_length=255)
+    access_token = models.CharField(max_length=255)
+    last_checked = models.DateTimeField(auto_now=True)
+    last_follower_count = models.PositiveIntegerField(default=0)
+
+    def __str__(self):
+        return f"Twitch Follower Action for {self.user.username} - User ID: {self.twitch_user_id}"
+
+class SpotifyPlaylistAddSongReaction(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    spotify_playlist_id = models.CharField(max_length=255)
+    spotify_access_token = models.CharField(max_length=255)
+
+    def __str__(self):
+        return f"Spotify Playlist Reaction for {self.user.username} - Playlist ID: {self.spotify_playlist_id}"
