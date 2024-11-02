@@ -115,12 +115,20 @@ class WebDashboard extends StatelessWidget {
         const SizedBox(height: 30),
         Text(
           "Welcome $username !",
-          style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+          style: const TextStyle(
+            fontSize: 24,
+            fontWeight: FontWeight.bold,
+            fontFamily: 'ClashGrotesk',
+          ),
         ),
         const SizedBox(height: 30),
         Text(
           email,
-          style: const TextStyle(fontSize: 18, color: Colors.grey),
+          style: const TextStyle(
+            fontSize: 18,
+            color: Colors.grey,
+            fontFamily: 'ClashGrotesk',
+          ),
         ),
       ],
     );

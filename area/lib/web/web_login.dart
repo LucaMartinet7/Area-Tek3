@@ -18,6 +18,14 @@ class WebLoginState extends State<WebLogin> {
     return Scaffold(
       appBar: AppBar(
         automaticallyImplyLeading: false,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.info),
+            onPressed: () {
+              Navigator.pushNamed(context, '/about');
+            },
+          ),
+        ],
       ),
       body: Center(
         child: SizedBox(
@@ -28,15 +36,10 @@ class WebLoginState extends State<WebLogin> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Text(
-                    "Login",
-                    style: TextStyle(
-                      color: Colors.black,
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 20),
+                  Image.asset(
+                        'assets/images/logo_black.png',
+                        height: 100,
+                      ),
                   NameField(controller: _nameController),
                   const SizedBox(height: 20),
                   PasswordField(controller: _passwordController),

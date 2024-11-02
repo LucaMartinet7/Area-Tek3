@@ -21,8 +21,8 @@ class MobileDashboard extends StatelessWidget {
       Service('assets/vectors/spotify.png', true, '/spotify', [const Color(0xFF1DB954)]),
       Service('assets/vectors/twitch.png', false, '/twitch', [const Color(0xFF9146FF)]),
       Service('assets/vectors/google.png', true, '/google', [Colors.blue, Colors.red, Colors.yellow, Colors.green]),
-      Service('assets/vectors/youtube.png', false, '/youtube', [const Color(0xFFFF0000)]),
-      Service('assets/vectors/microsoft.png', true, '/microsoft', [Colors.blue, Colors.green, Colors.yellow, Colors.red]),
+      Service('assets/vectors/youtube.png', true, '/youtube', [const Color(0xFFFF0000)]),
+      Service('assets/vectors/microsoft.png', false, '/microsoft', [Colors.blue, Colors.green, Colors.yellow, Colors.red]),
     ];
 
     void handleConnect(BuildContext context, String route) {
@@ -36,11 +36,23 @@ class MobileDashboard extends StatelessWidget {
       appBar: AppBar(
         automaticallyImplyLeading: false,
       ),
+      
       body: Center(
         child: SingleChildScrollView(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
-            children: services.map((service) {
+            children: [
+              const SizedBox(height: 15),
+              const Text(
+                'Available APIs',
+                style: TextStyle(
+                  fontFamily: 'ClashGrotesk',
+                  fontSize: 30,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 20),
+            ...services.map((service) {
               return Center(
                 child: Card(
                   margin: const EdgeInsets.symmetric(vertical: 30.0),
@@ -57,7 +69,8 @@ class MobileDashboard extends StatelessWidget {
                   ),
                 ),
               );
-            }).toList(),
+            }),
+            ],
           ),
         ),
       ),

@@ -22,7 +22,7 @@ class MobileAccount extends StatelessWidget {
       Service('Spotify', 'assets/images/spotify.png', true),
       Service('Twitch', 'assets/images/twitch.png', false),
       Service('Google', 'assets/images/google.png', true),
-      Service('Microsoft', 'assets/images/microsoft.png', true),
+      Service('Microsoft', 'assets/images/microsoft.png', false),
     ];
 
     void handleConnect(String serviceName) {
@@ -33,39 +33,48 @@ class MobileAccount extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        automaticallyImplyLeading: false,
-        actions: [
-          buildExitButton(context),
-        ],
+      automaticallyImplyLeading: false,
+      leading: _buildAboutButton(context),
+      actions: [
+        buildExitButton(context),
+      ],
       ),
       body: Center(
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: FutureBuilder<String?>(
-            future: getUsername(),
-            builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                return const CircularProgressIndicator();
-              } else if (snapshot.hasError || !snapshot.hasData) {
-                return const Text('Failed to load username');
-              } else {
-                final username = snapshot.data!;
-                return Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _buildProfile(context, username),
-                    const SizedBox(height: 16),
-                    _buildServiceBoxes(services, handleConnect),
-                  ],
-                );
-              }
-            },
-          ),
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: FutureBuilder<String?>(
+        future: getUsername(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+          return const CircularProgressIndicator();
+          } else if (snapshot.hasError || !snapshot.hasData) {
+          return const Text('Failed to load username');
+          } else {
+          final username = snapshot.data!;
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+            _buildProfile(context, username),
+            const SizedBox(height: 16),
+            _buildServiceBoxes(services, handleConnect),
+            ],
+          );
+          }
+        },
         ),
+      ),
       ),
       bottomNavigationBar: const MobileNavBar(),
     );
-  }
+    }
+    Widget _buildAboutButton(BuildContext context) {
+    return IconButton(
+      icon: const Icon(Icons.info_outline),
+      onPressed: () {
+      Navigator.pushNamed(context, '/about');
+      },
+    );
+    }
 
   Widget _buildProfile(BuildContext context, String username) {
     return Container(
@@ -119,12 +128,19 @@ class MobileAccount extends StatelessWidget {
         const SizedBox(height: 10),
         Text(
           "Welcome $username !",
-          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+          style: const TextStyle(
+            fontSize: 20,
+            fontFamily: 'ClashGrotesk',
+          ),
         ),
         const SizedBox(height: 10),
         Text(
           email,
-          style: const TextStyle(fontSize: 14, color: Colors.grey),
+          style: const TextStyle(
+            fontSize: 16,
+            color: Colors.grey,
+            fontFamily: 'ClashGrotesk',
+          ),
         ),
       ],
     );

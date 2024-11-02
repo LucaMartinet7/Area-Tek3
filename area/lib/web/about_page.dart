@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'web/web_nav_bar.dart';
-import '../shared/api_service.dart' show isLoggedIn;
+import 'web_nav_bar.dart';
+import '../../shared/api_service.dart' show isLoggedIn;
 
-class AboutPage extends StatelessWidget {
-  const AboutPage({super.key});
+class WebAboutPage extends StatelessWidget {
+  const WebAboutPage({super.key});
 
   static const double _defaultFontSize = 45;
   static const double _smallFontSize = 25;
@@ -120,7 +120,7 @@ class AboutPage extends StatelessWidget {
           const SizedBox(width: 32),
           Flexible(
             child: Image.asset(
-              '../assets/images/logo_blanc_fond.png',
+              'assets/images/logo_black.png',
               width: _imageSize,
               height: _imageSize,
               fit: BoxFit.contain,

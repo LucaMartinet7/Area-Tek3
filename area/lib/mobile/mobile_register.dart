@@ -19,6 +19,14 @@ class MobileRegisterState extends State<MobileRegister> {
     return Scaffold(
       appBar: AppBar(
         automaticallyImplyLeading: false,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.info),
+            onPressed: () {
+              Navigator.pushNamed(context, '/about');
+            },
+          ),
+        ],
       ),
       body: Center(
         child: SingleChildScrollView(
@@ -38,18 +46,15 @@ class MobileRegisterState extends State<MobileRegister> {
                 color: Colors.white,
                 constraints: const BoxConstraints(
                   maxWidth: 400,
+                  maxHeight: 550,
                 ),
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Text(
-                      "Register",
-                      style: TextStyle(
-                        color: Colors.black,
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
+                    Image.asset(
+                        'assets/images/logo_black.png',
+                        height: 100,
                       ),
-                    ),
                     const SizedBox(height: 20),
                     NameField(controller: _nameController),
                     const SizedBox(height: 20),

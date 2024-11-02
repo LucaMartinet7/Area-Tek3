@@ -19,25 +19,28 @@ class WebRegisterState extends State<WebRegister> {
     return Scaffold(
       appBar: AppBar(
         automaticallyImplyLeading: false,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.info),
+            onPressed: () {
+              Navigator.pushNamed(context, '/about');
+            },
+          ),
+        ],
       ),
       body: Center(
         child: SizedBox(
-          width: 800,
-          height: 600,
+          width: 1000, // Increased width
+          height: 800, // Increased height
           child: InfoContainer(
             child: AuthContainer(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Text(
-                    "Register",
-                    style: TextStyle(
-                      color: Colors.black,
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                    ),
+                  Image.asset(
+                    'assets/images/logo_black.png',
+                    height: 100,
                   ),
-                  const SizedBox(height: 20),
                   NameField(controller: _nameController),
                   const SizedBox(height: 20),
                   EmailField(controller: _emailController),

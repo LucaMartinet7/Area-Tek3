@@ -36,6 +36,7 @@ class ServiceBox extends StatelessWidget {
                 color: isConnected ? Colors.green : Colors.red,
                 fontSize: 32,
                 fontWeight: FontWeight.bold,
+                fontFamily: 'ClashGrotesk',
               ),
             ),
           ),
