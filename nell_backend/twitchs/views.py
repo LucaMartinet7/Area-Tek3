@@ -12,9 +12,28 @@ from atproto import Client
 
 class CheckTwitchLiveView(APIView):
     def post(self, request):
+        user = request.user
         try:
-            check_twitch_live()
-            return Response({"message": "Twitch live status check executed successfully."}, status=status.HTTP_200_OK)
+            # Check the Twitch live status
+            is_live = check_twitch_live(user)
+            
+            # If no Twitch SocialUser is found, return an error
+            if is_live is None:
+                return Response({"error": "No Twitch SocialUser found for the user."}, status=status.HTTP_404_NOT_FOUND)
+            
+            # Get or create a TwitchLiveAction for the user
+            twitch_live_action, created = TwitchLiveAction.objects.get_or_create(user=user)
+            
+            # Set the channel_status based on live status
+            twitch_live_action.channel_status = is_live
+            twitch_live_action.save()  # Save the updated status to the database
+
+            # Return a success response with the appropriate message
+            if is_live:
+                return Response({"message": "Twitch is live; status updated successfully."}, status=status.HTTP_200_OK)
+            else:
+                return Response({"message": "Twitch is not live; status updated successfully."}, status=status.HTTP_200_OK)
+
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
