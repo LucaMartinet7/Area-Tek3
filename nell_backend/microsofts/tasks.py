@@ -1,7 +1,7 @@
 import logging
 import os
 import requests
-from django.utils import timezone
+from datetime import datetime, timedelta, timezone
 from google.oauth2 import service_account
 from googleapiclient.discovery import build
 from googleapiclient.http import MediaIoBaseUpload
@@ -123,6 +123,70 @@ def save_file_to_google_drive(user_id, onedrive_file, access_token):
         logger.info(f"File '{onedrive_file.name}' successfully saved to Google Drive")
     except Exception as e:
         logger.error(f"Failed to save file to Google Drive: {e}")
+
+def check_new_outlook_email(user_id, access_token): #New function to check outlook email received (old function right under this one same name)
+    """Checks if any new Outlook emails were received in the last minute."""
+    logger.info(f"Checking for new Outlook emails for user: {user_id}")
+    
+    url = "https://graph.microsoft.com/v1.0/me/mailFolders/inbox/messages"
+    headers = {
+        'Authorization': f'Bearer {access_token}',
+        'Content-Type': 'application/json'
+    }
+
+    # Calculate the timestamp for one minute ago
+    now = datetime.now(timezone.utc)
+    start_time = (now - timedelta(minutes=10)).isoformat()
+    logger.info(f"Checking emails received after: {start_time}")
+
+    params = {
+        '$orderby': 'receivedDateTime desc',
+        '$top': 1,  # Limit to 1 message to check if any new email exists
+        '$filter': f"receivedDateTime ge {start_time}"  # Filter messages from the last 10 minutes
+    }
+
+    # If we need to get infos from email
+    #for email in emails:
+    #        received_time = datetime.fromisoformat(email['receivedDateTime'].replace("Z", "+00:00"))
+
+    #        email_obj, created = OutlookEmailAction.objects.get_or_create(
+    #            user_id=user_id,
+    #            message_id=email['id'],
+    #            defaults={
+    #                'subject': email['subject'],
+    #                'sender': email['from']['emailAddress']['address'],
+    #                'received_at': received_time,
+    #                'processed': False
+    #            }
+    #        )
+    #        # Trigger reactions if the email is new or unprocessed
+    #        if created or not email_obj.processed:
+    #            create_google_calendar_event(user_id, email_obj)
+    #            post_message_to_google_chat(user_id, email_obj)
+    #            email_obj.processed = True
+    #            email_obj.save()
+    #            logger.info(f"Processed new email for user {user_id}")
+    #            break
+
+    try:
+        response = requests.get(url, headers=headers, params=params)
+        
+        if response.status_code != 200:
+            logger.error(f"Error checking emails: {response.json()}")
+            return False
+
+        # Check if there's at least one email in the response
+        emails = response.json().get('value', [])
+        if emails:
+            logger.info(f"New email detected for user {user_id} within the last minute.")
+            return True
+        else:
+            logger.info(f"No new emails found for user {user_id} within the last minute.")
+            return False
+
+    except Exception as e:
+        logger.error(f"Error checking Outlook email for user {user_id}: {e}")
+        return False
 
 def check_new_outlook_email(user_id, access_token):
     logger.info(f"Checking for new Outlook emails for user: {user_id}")

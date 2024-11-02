@@ -6,6 +6,50 @@ from .models import SpotifySongAction, TwitchChatReaction
 
 logger = logging.getLogger(__name__)
 
+def is_spotify_playing(access_token): #New function to check if user plays a spotify song (old function : check_spotify_new_song)
+    """Checks if there is currently any playback on Spotify."""
+    url = "https://api.spotify.com/v1/me/player/currently-playing"
+    headers = {
+        'Authorization': f'Bearer {access_token}',
+        'Content-Type': 'application/json'
+    }
+
+    try:
+        response = requests.get(url, headers=headers)
+        
+        # A 204 status code indicates that nothing is currently playing. else there's a song being played
+        if response.status_code == 204:
+            print("No song is currently playing.")
+            return 1
+        
+        
+        # data = response.json()
+        # song_id = data['item']['id']
+        # song_name = data['item']['name']
+        # artist_name = ', '.join([artist['name'] for artist in data['item']['artists']])
+        # album_name = data['item']['album']['name']
+        # played_at = datetime.fromtimestamp(data['timestamp'] / 1000, tz=timezone.utc)
+        # Check if this song is already in the database
+        # song_obj, created = SpotifySongAction.objects.get_or_create(
+        #    user=user,
+        #    song_id=song_id,
+        #    defaults={
+        #        'song_name': song_name,
+        #        'artist_name': artist_name,
+        #        'album_name': album_name,
+        #        'played_at': played_at,
+        #        'processed': False
+        #    }
+        #)
+
+        #We need to adjust it like we've down but it should work. Example above on how to get data on the played song
+        return 0
+
+    except Exception as e:
+        print(f"Error checking Spotify playback status: {e}")
+        return False
+
+
 def check_spotify_new_song(user_id, access_token):
     logger.info(f"Checking Spotify for new song playback for user: {user_id}")
     
