@@ -3,20 +3,16 @@ from rest_framework.routers import DefaultRouter
 from .views import *
 
 urlpatterns = [
-    path('live-actions/', TwitchLiveActionViewSet.as_view({'get': 'list', 'post': 'create'}), name='twitch-live-action-list'),
-    path('live-actions/<int:pk>/', TwitchLiveActionViewSet.as_view({'get': 'retrieve', 'put': 'update', 'delete': 'destroy'}), name='twitch-live-action-detail'),
+# Individual APIView endpoints
+    path('check-twitch-live/', ChannelStatusCheckView.as_view(), name='check-twitch-live'),
+    path('post-to-bluesky/', PostToBlueskyView.as_view(), name='post-to-bluesky'),
+    path('setup-bluesky-user/', GetBlueskyUserIDView.as_view(), name='setup-bluesky-user'),
+    path('check-and-post-to-bluesky/', CheckAndPostToBlueskyView.as_view(), name='check-and-post-to-bluesky'),
     
-    path('bluesky-reactions/', BlueskyPostReactionViewSet.as_view({'get': 'list', 'post': 'create'}), name='bluesky-post-reaction-list'),
-    path('bluesky-reactions/<int:pk>/', BlueskyPostReactionViewSet.as_view({'get': 'retrieve', 'put': 'update', 'delete': 'destroy'}), name='bluesky-post-reaction-detail'),
-    
-    path('twitch-follower-actions/', TwitchFollowerActionViewSet.as_view({'get': 'list', 'post': 'create'}), name='twitch-follower-action-list'),
-    path('twitch-follower-actions/<int:pk>/', TwitchFollowerActionViewSet.as_view({'get': 'retrieve', 'put': 'update', 'delete': 'destroy'}), name='twitch-follower-action-detail'),
-    
-    path('spotify-playlist-reactions/', SpotifyPlaylistAddSongReactionViewSet.as_view({'get': 'list', 'post': 'create'}), name='spotify-playlist-reaction-list'),
-    path('spotify-playlist-reactions/<int:pk>/', SpotifyPlaylistAddSongReactionViewSet.as_view({'get': 'retrieve', 'put': 'update', 'delete': 'destroy'}), name='spotify-playlist-reaction-detail'),
+    # Manually defined paths for ViewSet actions
+    path('twitch-live-actions/', TwitchLiveActionViewSet.as_view({'get': 'list', 'post': 'create'}), name='twitch-live-action-list'),
+    path('twitch-live-actions/<int:pk>/', TwitchLiveActionViewSet.as_view({'get': 'retrieve', 'put': 'update', 'delete': 'destroy'}), name='twitch-live-action-detail'),
 
-    path('check-twitch-live/', CheckTwitchLiveView.as_view(), name='check-twitch-live'),
-    path('bluesky/get-user-id/', GetBlueskyUserIDView.as_view(), name='get-bluesky-user-id'),
-    path('check-twitch-follower/', TwitchFollowerActionViewSet.as_view({'get': 'list'}), name='check-twitch-follower'),
-    path('spotify/get-playlist-id/', SpotifyPlaylistAddSongReactionViewSet.as_view({'get': 'list'}), name='get-spotify-playlist-id'),
+    path('bluesky-post-reactions/', BlueskyPostReactionViewSet.as_view({'get': 'list', 'post': 'create'}), name='bluesky-post-reaction-list'),
+    path('bluesky-post-reactions/<int:pk>/', BlueskyPostReactionViewSet.as_view({'get': 'retrieve', 'put': 'update', 'delete': 'destroy'}), name='bluesky-post-reaction-detail'),
 ]

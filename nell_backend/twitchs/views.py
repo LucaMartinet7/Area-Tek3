@@ -4,38 +4,81 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from .models import *
 from .serializers import *
-from .tasks import check_twitch_live
+from .tasks import *
 from rest_framework import serializers
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
 from atproto import Client
 
-class CheckTwitchLiveView(APIView):
+class ChannelStatusCheckView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
     def post(self, request):
         user = request.user
-        try:
-            # Check the Twitch live status
-            is_live = check_twitch_live(user)
-            
-            # If no Twitch SocialUser is found, return an error
-            if is_live is None:
-                return Response({"error": "No Twitch SocialUser found for the user."}, status=status.HTTP_404_NOT_FOUND)
-            
-            # Get or create a TwitchLiveAction for the user
-            twitch_live_action, created = TwitchLiveAction.objects.get_or_create(user=user)
-            
-            # Set the channel_status based on live status
-            twitch_live_action.channel_status = is_live
-            twitch_live_action.save()  # Save the updated status to the database
+        is_live = check_twitch_live(user)
 
-            # Return a success response with the appropriate message
-            if is_live:
-                return Response({"message": "Twitch is live; status updated successfully."}, status=status.HTTP_200_OK)
+        if is_live is None:
+            return Response({"error": "No Twitch SocialUser found for the user."}, status=status.HTTP_404_NOT_FOUND)
+        
+        # Update or create a TwitchLiveAction with the live status
+        twitch_live_action, created = TwitchLiveAction.objects.get_or_create(user=user)
+        twitch_live_action.channel_status = is_live
+        twitch_live_action.save()
+
+        message = "Twitch is live; status updated successfully." if is_live else "Twitch is not live; status updated successfully."
+        return Response({"message": message}, status=status.HTTP_200_OK)
+
+class PostToBlueskyView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request):
+        user = request.user
+        twitch_live_action = TwitchLiveAction.objects.filter(user=user).first()
+
+        # Check if the user’s Twitch channel is live
+        if twitch_live_action and twitch_live_action.channel_status:
+            # Fetch the Bluesky post reaction and post to Bluesky
+            reaction = BlueskyPostReaction.objects.filter(user=user).first()
+            if reaction:
+                post_to_bluesky(reaction)
+                return Response({"message": "Posted to Bluesky successfully."}, status=status.HTTP_200_OK)
             else:
-                return Response({"message": "Twitch is not live; status updated successfully."}, status=status.HTTP_200_OK)
+                return Response({"error": "Bluesky post reaction not found for the user."}, status=status.HTTP_404_NOT_FOUND)
+        else:
+            return Response({"message": "Channel is not live."}, status=status.HTTP_400_BAD_REQUEST)
+        
+class CheckAndPostToBlueskyView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
 
-        except Exception as e:
-            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    def post(self, request):
+        user = request.user
+        
+        # Step 1: Check if the Twitch channel is live
+        is_live = check_twitch_live(user)
+        if is_live is None:
+            return Response({"error": "No Twitch SocialUser found for the user."}, status=status.HTTP_404_NOT_FOUND)
+        
+        # Step 2: Update or create a TwitchLiveAction with the live status
+        twitch_live_action, created = TwitchLiveAction.objects.get_or_create(user=user)
+        twitch_live_action.channel_status = is_live
+        twitch_live_action.save()
+
+        # Prepare a message indicating the channel status
+        status_message = "Twitch is live; status updated successfully." if is_live else "Twitch is not live; status updated successfully."
+
+        # Step 3: If the channel is live, post to Bluesky
+        if is_live:
+            # Attempt to retrieve the Bluesky post reaction
+            reaction = BlueskyPostReaction.objects.filter(user=user).first()
+            if reaction:
+                # Post the message to Bluesky
+                post_to_bluesky(reaction)
+                return Response({"message": f"{status_message} Posted to Bluesky successfully."}, status=status.HTTP_200_OK)
+            else:
+                return Response({"error": f"{status_message} But Bluesky post reaction not found for the user."}, status=status.HTTP_404_NOT_FOUND)
+        
+        # Return the status message if the channel is not live
+        return Response({"message": status_message}, status=status.HTTP_200_OK)
 
 class TwitchLiveActionViewSet(viewsets.ModelViewSet):
     queryset = TwitchLiveAction.objects.all()
@@ -60,6 +103,8 @@ class BlueskyPostReactionViewSet(viewsets.ModelViewSet):
         serializer.save(user=self.request.user)
 
 class GetBlueskyUserIDView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
     @swagger_auto_schema(
         request_body=BlueskyUserIDRequestSerializer,
         responses={200: openapi.Response('Bluesky User ID retrieved and saved successfully.')}
@@ -71,7 +116,7 @@ class GetBlueskyUserIDView(APIView):
 
         bluesky_handle = serializer.validated_data.get("bluesky_handle")
         bluesky_password = serializer.validated_data.get("bluesky_password")
-
+        message = serializer.validated_data.get("message")
         try:
             # Initialize the Bluesky client and log in
             client = Client()
@@ -93,7 +138,8 @@ class GetBlueskyUserIDView(APIView):
                     user=request.user,
                     bluesky_handle=bluesky_handle,
                     bluesky_password=bluesky_password,
-                    bluesky_user_id=bluesky_user_id
+                    bluesky_user_id=bluesky_user_id,
+                    message=message  # Save the message content as well
                 )
                 return Response({"bluesky_user_id": bluesky_user_id}, status=status.HTTP_200_OK)
             else:
