@@ -155,24 +155,33 @@ class OAuthInitView(APIView):
         auth_url = f"{provider_config['auth_url']}?{urlencode(params)}"
         return HttpResponseRedirect(auth_url)
 
-
 class OAuthCallbackView(APIView):
     @swagger_auto_schema(manual_parameters=[openapi.Parameter('provider', openapi.IN_PATH, description="OAuth provider", type=openapi.TYPE_STRING)])
-    @method_decorator(csrf_exempt, name='dispatch')
+    #@method_decorator(csrf_exempt, name='dispatch')
     def get(self, request, provider):
+        user = request.user
+        print(f"User: {user}")
         if getattr(self, 'swagger_fake_view', False):
+            print("Swagger view detected.")
             return Response({"message": "Schema generation in progress"}, status=status.HTTP_200_OK)
 
+        print(f"Provider received: {provider}")
         if provider not in PROVIDERS:
+            print(f"Unsupported provider: {provider}")
             return Response({"error": "Unsupported provider"}, status=status.HTTP_400_BAD_REQUEST)
 
         code = request.GET.get('code')
+        print(f"Authorization code received: {code}")
         if not code:
+            print("Authorization code not provided.")
             return Response({"error": "Authorization code not provided"}, status=status.HTTP_400_BAD_REQUEST)
 
         provider_config = PROVIDERS[provider]
+        print(f"Provider configuration: {provider_config}")
+
         redirect_uri = settings.TWITCH_REDIRECT_URI if provider == 'twitch' else INTERNAL_REDIRECT_URI_TEMPLATE.format(provider=provider)
-        
+        print(f"Redirect URI: {redirect_uri}")
+
         token_data = {
             'client_id': provider_config['client_id'],
             'client_secret': provider_config['client_secret'],
@@ -180,89 +189,115 @@ class OAuthCallbackView(APIView):
             'redirect_uri': redirect_uri,
             'grant_type': 'authorization_code',
         }
+        print(f"Token request data: {token_data}")
 
         try:
             token_response = requests.post(provider_config['token_url'], data=token_data, headers={'Accept': 'application/json'})
             token_response.raise_for_status()
             response_data = token_response.json()
+            print("Token response data:", response_data)
             access_token = response_data.get('access_token')
-            print("Access token response:", response_data)
+            print(f"Access token obtained: {access_token}")
         except requests.exceptions.RequestException as e:
+            print(f"Error obtaining access token: {e}")
             return Response({"error": f"Failed to obtain access token: {e}"}, status=status.HTTP_400_BAD_REQUEST)
 
         if not access_token:
+            print("Access token not provided by the provider.")
             return Response({"error": "Access token not provided by the provider"}, status=status.HTTP_400_BAD_REQUEST)
 
-        headers = {
-            'Authorization': f"Bearer {access_token}"
-        }
+        headers = {'Authorization': f"Bearer {access_token}"}
         if provider == 'twitch':
-            headers['Client-Id'] = provider_config['client_id']  # Required for Twitch
+            headers['Client-Id'] = provider_config['client_id']
+        print(f"Headers for data request: {headers}")
 
-        # Fetch user data and handle each provider separately
         try:
             data_response = requests.get(provider_config['data_url'], headers=headers)
             data_response.raise_for_status()
             user_data = data_response.json()
             print("User data response:", user_data)
-            
+
             if provider == 'twitch':
-                # For Twitch, extract 'login' and 'id' from nested data
                 provider_username = user_data.get('data', [{}])[0].get('login')
                 provider_id = user_data.get('data', [{}])[0].get('id')
+                email = user_data.get('data', [{}])[0].get('email', f"{provider_username}@example.com")
             elif provider == 'google':
-                # For Google, extract directly from flat data structure
                 provider_username = user_data.get('name')
                 provider_id = user_data.get('id')
                 email = user_data.get('email', f"{provider_username}@example.com")
             elif provider == 'spotify':
-                # For Spotify, use 'display_name' and 'id', with email directly provided
                 provider_username = user_data.get('display_name')
                 provider_id = user_data.get('id')
                 email = user_data.get('email', f"{provider_username}@example.com")
             else:
-                # Generic provider (e.g., GitHub)
                 provider_username = user_data.get('login')
                 provider_id = user_data.get('id')
                 email = user_data.get('email', f"{provider_username}@example.com")
 
+            print(f"Provider username: {provider_username}")
+            print(f"Provider ID: {provider_id}")
+            print(f"Email: {email}")
+
             if not provider_username or not provider_id:
+                print("Required user data not provided by the provider.")
                 return Response({"error": "Required user data not provided by the provider"}, status=status.HTTP_400_BAD_REQUEST)
 
         except requests.exceptions.RequestException as e:
+            print(f"Error obtaining user data: {e}")
             return Response({"error": f"Failed to obtain user data: {e}"}, status=status.HTTP_400_BAD_REQUEST)
 
         username = provider_username or email.split('@')[0] or get_random_string(10)
+        print(f"Username: {username}")
 
-        # If user is authenticated, update SocialUser
+        # If a user is authenticated, update or create the SocialUser for the logged-in user
         if request.user.is_authenticated:
+            print("User is authenticated.")
             user = request.user
+            print(f"Authenticated user: {user}")
             social_user, created = SocialUser.objects.get_or_create(
                 user=user,
                 provider=provider,
                 provider_id=provider_id,
                 defaults={'access_token': access_token, 'provider_username': username}
             )
+            print(f"SocialUser created: {created}")
             if not created:
+                # Update the existing SocialUser with the new access_token and username if necessary
                 social_user.access_token = access_token
                 social_user.provider_username = username
                 social_user.save()
+                print("Updated existing SocialUser with new access token and username.")
             return HttpResponseRedirect("http://localhost:3000/dashboard")
 
-        # Save or update user info for unauthenticated user
+        # For unauthenticated users, create or retrieve the User and SocialUser
         try:
             social_user = SocialUser.objects.get(provider=provider, provider_id=provider_id)
+            print(f"Existing SocialUser found: {social_user}")
             user = social_user.user
             social_user.access_token = access_token
             social_user.provider_username = username
             social_user.save()
+            print("Updated existing SocialUser for unauthenticated user.")
         except SocialUser.DoesNotExist:
-            user = User.objects.create(username=username, email=email)
+            print("No existing SocialUser found; checking for User by email.")
+            try:
+                user = User.objects.get(email=email)
+                print(f"Existing User found by email: {user}")
+            except User.DoesNotExist:
+                print("No User found by email; creating a new User.")
+                user = User.objects.create(username=username, email=email)
+                print(f"New User created: {user}")
+
+            # Link SocialUser to the found or newly created user
             SocialUser.objects.create(
                 user=user, provider=provider, provider_id=provider_id,
                 access_token=access_token, provider_username=username
             )
+            print("Created new SocialUser and linked to User.")
             PersistentToken.objects.create(user=user)
+            print("PersistentToken created for the user.")
 
+        # Log in the user and redirect
         login(request, user, backend='django.contrib.auth.backends.ModelBackend')
+        print(f"User logged in: {user}")
         return HttpResponseRedirect("http://localhost:3000/dashboard")

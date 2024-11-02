@@ -99,8 +99,7 @@ class AREACheckGmailSpotify(APIView):
         
 class AREACheckGmailTwitch(APIView):
     def post(self, request):
-        user = request.user
-        if check_gmail_for_twitch(user) == 0: 
+        if check_gmail_for_twitch() == 0: 
             return Response({"message": "Gmail status check executed successfully."}, status=status.HTTP_200_OK)
         else:
             return Response("error: status 500" , status=status.HTTP_500_INTERNAL_SERVER_ERROR)
