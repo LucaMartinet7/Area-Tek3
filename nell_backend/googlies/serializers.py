@@ -17,6 +17,6 @@ class SpotifySongReactionSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 class GmailCheckRequestSerializer(serializers.Serializer):
-    access_token = serializers.CharField(max_length=255)
+    song_uri = serializers.CharField(max_length=255)
     channel_name = serializers.CharField(max_length=255)
     message_content = serializers.CharField(max_length=500)

@@ -16,6 +16,8 @@ DEBUG = os.getenv('DEBUG', 'False') == 'True'
 ALLOWED_HOSTS = [
     '127.0.0.1',
     'localhost',
+    'https://5a70-45-154-248-67.ngrok-free.app',
+    '5a70-45-154-248-67.ngrok-free.app',
 ]
 
 SITE_ID = 3
@@ -134,6 +136,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'allauth.account.middleware.AccountMiddleware',
     'corsheaders.middleware.CorsMiddleware',
+    'django.middleware.common.CommonMiddleware',
 ]
 
 REST_FRAMEWORK = {
@@ -167,7 +170,7 @@ AUTHENTICATION_BACKENDS = (
 )
 
 LOGIN_REDIRECT_URL = 'http://localhost:3000/dashboard'
-
+TWITCH_REDIRECT_URI = "https://5a70-45-154-248-67.ngrok-free.app/api/auth/twitch/callback/"
 WSGI_APPLICATION = 'nell_backend.wsgi.application'
 
 DATABASES = {
@@ -204,9 +207,17 @@ CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
     "http://127.0.0.1:3000",
     "http://localhost:45195",
+    "https://5a70-45-154-248-67.ngrok-free.app",
+    "http://5a70-45-154-248-67.ngrok-free.app",
+]
+
+CSRF_TRUSTED_ORIGINS = [
+    'https://5a70-45-154-248-67.ngrok-free.app',
+    'http://5a70-45-154-248-67.ngrok-free.app',  # Include both HTTP and HTTPS
 ]
 
 CORS_ALLOW_HEADERS = [
+    '/accounts/login/',
     'content-type',
     'authorization',
     'x-csrftoken',

@@ -10,12 +10,15 @@ from django.conf import settings
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-def initialize_gmail_service(access_token):
-    print("Initializing Gmail service with access token")
-    creds = Credentials(token=access_token)
-    print(f"Credentials initialized: {creds}")
-    service = build('gmail', 'v1', credentials=creds)
-    print(f"Gmail service built: {service}")
+def initialize_gmail_service(access_token, refresh_token, client_id, client_secret, token_uri):
+    credentials = Credentials(
+        token=access_token,
+        refresh_token=refresh_token,
+        client_id=client_id,
+        client_secret=client_secret,
+        token_uri=token_uri
+    )
+    service = build('gmail', 'v1', credentials=credentials)
     return service
 
 def run_spotify_reaction(user):
@@ -77,30 +80,48 @@ def run_twitch_reaction(user):
         logger.error(f"No Twitch chat reaction found for user {user.username}")
         return
     
-    print("Preparing Twitch request payload")
-    if SocialUser.provider == 'twitch':
-        headers = {
-            'Authorization': f'Bearer {SocialUser.access_token}',
-            'Client-Id': SocialUser.provider_id,
-            'Content-Type': 'application/json'
-        }
-        payload = {
-            "content": twitch_reaction.message_content,
-            "channel_name": twitch_reaction.channel_name
-        }
-        print(f"Twitch headers: {headers}")
-        print(f"Twitch payload: {payload}")
+    # Fetch the SocialUser instance for Twitch
+    social_user = SocialUser.objects.filter(user=user, provider='twitch').first()
+    if not social_user:
+        logger.error(f"No SocialUser with provider 'twitch' found for user {user.username}")
+        return
+
+    # Prepare headers and payload using the social_user instance
+    headers = {
+        'Authorization': f'Bearer {social_user.access_token}',
+        'Client-Id': settings.TWITCH_CLIENT_ID,
+        'Content-Type': 'application/json'
+    }
+
+    # Use provider_id from SocialUser as broadcaster_id and sender_id
+    broadcaster_id = social_user.provider_id
+    sender_id = social_user.provider_id  # Using the same ID for sender
+
+    if not broadcaster_id or not sender_id:
+        logger.error(f"SocialUser does not have a valid broadcaster_id or sender_id for user {user.username}")
+        return
+
+    payload = {
+        "message": twitch_reaction.message_content,
+        "channel_name": twitch_reaction.channel_name,
+        "broadcaster_id": broadcaster_id,  # Required parameter
+        "sender_id": sender_id  # New required parameter
+    }
+    print(f"Twitch headers: {headers}")
+    print(f"Twitch payload: {payload}")
 
     try:
         print("Sending request to Twitch API to post message")
         response = requests.post("https://api.twitch.tv/helix/chat/messages", headers=headers, json=payload)
         print(f"Twitch response status: {response.status_code}")
         print(f"Twitch response text: {response.text}")
-
-        if response.status_code == 204:
+        print(f"Response status code: {response.status_code}")
+        if response.status_code == 200:
             logger.info(f"Message posted to Twitch chat for user {user.username}")
+            return 0
         else:
             logger.error(f"Failed to post message to Twitch chat: {response.text}")
+            return 1
     except Exception as e:
         logger.error(f"Error sending message to Twitch chat for user {user.username}: {e}")
 
@@ -112,62 +133,161 @@ def check_gmail_for_spotify():
 
     for action in actions:
         user = action.user
-        print(f"Processing action for user {user.username}")
-        service = initialize_gmail_service(action.access_token)
-        now = datetime.now(timezone.utc)
-        start_time = (now - timedelta(minutes=1)).isoformat() + 'Z'
-        print(f"Checking emails after: {start_time}")
+        social_user = SocialUser.objects.filter(user=user, provider='google').first()
+        
+        if not social_user or not social_user.access_token:
+            print(f"No Google access token found for user {user.username}")
+            continue
 
+        print(f"Processing action for user {user.username}")
+        
         try:
-            print("Sending request to Gmail API to check for new messages")
+            # Initialize the Gmail service with OAuth credentials
+            service = initialize_gmail_service(
+                social_user.access_token,
+                settings.SOCIAL_AUTH_GOOGLE_OAUTH2_KEY,
+                settings.SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET,
+                settings.AUTHORIZATION_URL_GOOGLE,
+                'https://oauth2.googleapis.com/token'
+            )
+
+            # Define the time window as a Unix timestamp from 2 minutes ago
+            two_minutes_ago = int((datetime.now(timezone.utc) - timedelta(minutes=2)).timestamp())
+            print(f"Checking emails from Unix timestamp: {two_minutes_ago}")
+
+            # Send request to Gmail API with the timestamp in the query
             response = service.users().messages().list(
                 userId='me',
-                q=f'after:{start_time}'
+                q=f'after:{two_minutes_ago}'
             ).execute()
             print(f"Gmail response: {response}")
 
+            # Retrieve the messages from the response
             messages = response.get('messages', [])
             print(f"Messages found: {len(messages)}")
+
             if messages:
                 logger.info(f"New email detected for user {user.username}. Triggering reactions.")
                 print("New email detected. Triggering reactions.")
+                run_spotify_reaction(user)
                 return 0
- 
+
         except Exception as e:
-            logger.error(f"Error checking Gmail for user {user.username}: {e}")
-            print("Error checking Gmail for user")
+            if 'invalid_client' in str(e) or 'invalid_grant' in str(e):
+                logger.error(f"Authentication error for user {user.username}: {e}")
+                print(f"Authentication error for user {user.username}. Please check OAuth credentials.")
+            else:
+                logger.error(f"Error checking Gmail for user {user.username}: {e}")
+                print(f"Error checking Gmail for user {user.username}. Exception: {e}")
             return 1
 
 def check_gmail_for_twitch():
     """Checks Gmail for new emails and triggers reactions if a new email is received."""
-    print("Checking Gmail for Twitch reactions")
+    print("Checking Gmail for Spotify reactions")
     actions = GmailReceivedAction.objects.all()
     print(f"Total actions retrieved: {len(actions)}")
 
     for action in actions:
         user = action.user
-        print(f"Processing action for user {user.username}")
-        service = initialize_gmail_service(action.access_token)
-        now = datetime.now(timezone.utc)
-        start_time = (now - timedelta(minutes=1)).isoformat() + 'Z'
-        print(f"Checking emails after: {start_time}")
+        social_user = SocialUser.objects.filter(user=user, provider='google').first()
+        
+        if not social_user or not social_user.access_token:
+            print(f"No Google access token found for user {user.username}")
+            continue
 
+        print(f"Processing action for user {user.username}")
+        
         try:
-            print("Sending request to Gmail API to check for new messages")
+            # Initialize the Gmail service with OAuth credentials
+            service = initialize_gmail_service(
+                social_user.access_token,
+                settings.SOCIAL_AUTH_GOOGLE_OAUTH2_KEY,
+                settings.SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET,
+                settings.AUTHORIZATION_URL_GOOGLE,
+                'https://oauth2.googleapis.com/token'
+            )
+
+            # Define the time window as a Unix timestamp from 2 minutes ago
+            two_minutes_ago = int((datetime.now(timezone.utc) - timedelta(minutes=2)).timestamp())
+            print(f"Checking emails from Unix timestamp: {two_minutes_ago}")
+
+            # Send request to Gmail API with the timestamp in the query
             response = service.users().messages().list(
                 userId='me',
-                q=f'after:{start_time}'
+                q=f'after:{two_minutes_ago}'
             ).execute()
             print(f"Gmail response: {response}")
 
+            # Retrieve the messages from the response
             messages = response.get('messages', [])
             print(f"Messages found: {len(messages)}")
+
+            if messages:
+                logger.info(f"New email detected for user {user.username}. Triggering reactions.")
+                print("New email detected. Triggering reactions.")
+                run_twitch_reaction(user)
+                return 0
+
+        except Exception as e:
+            if 'invalid_client' in str(e) or 'invalid_grant' in str(e):
+                logger.error(f"Authentication error for user {user.username}: {e}")
+                print(f"Authentication error for user {user.username}. Please check OAuth credentials.")
+            else:
+                logger.error(f"Error checking Gmail for user {user.username}: {e}")
+                print(f"Error checking Gmail for user {user.username}. Exception: {e}")
+            return 1
+        
+def check_gmail_for_emails():
+    """Checks Gmail for new emails and triggers reactions if a new email is received."""
+    print("Checking Gmail for Spotify reactions")
+    actions = GmailReceivedAction.objects.all()
+    print(f"Total actions retrieved: {len(actions)}")
+
+    for action in actions:
+        user = action.user
+        social_user = SocialUser.objects.filter(user=user, provider='google').first()
+        
+        if not social_user or not social_user.access_token:
+            print(f"No Google access token found for user {user.username}")
+            continue
+
+        print(f"Processing action for user {user.username}")
+        
+        try:
+            # Initialize the Gmail service with OAuth credentials
+            service = initialize_gmail_service(
+                social_user.access_token,
+                settings.SOCIAL_AUTH_GOOGLE_OAUTH2_KEY,
+                settings.SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET,
+                settings.AUTHORIZATION_URL_GOOGLE,
+                'https://oauth2.googleapis.com/token'
+            )
+
+            # Define the time window as a Unix timestamp from 2 minutes ago
+            two_minutes_ago = int((datetime.now(timezone.utc) - timedelta(minutes=2)).timestamp())
+            print(f"Checking emails from Unix timestamp: {two_minutes_ago}")
+
+            # Send request to Gmail API with the timestamp in the query
+            response = service.users().messages().list(
+                userId='me',
+                q=f'after:{two_minutes_ago}'
+            ).execute()
+            print(f"Gmail response: {response}")
+
+            # Retrieve the messages from the response
+            messages = response.get('messages', [])
+            print(f"Messages found: {len(messages)}")
+
             if messages:
                 logger.info(f"New email detected for user {user.username}. Triggering reactions.")
                 print("New email detected. Triggering reactions.")
                 return 0
-                
+
         except Exception as e:
-            logger.error(f"Error checking Gmail for user {user.username}: {e}")
-            print("Error checking Gmail for user")
+            if 'invalid_client' in str(e) or 'invalid_grant' in str(e):
+                logger.error(f"Authentication error for user {user.username}: {e}")
+                print(f"Authentication error for user {user.username}. Please check OAuth credentials.")
+            else:
+                logger.error(f"Error checking Gmail for user {user.username}: {e}")
+                print(f"Error checking Gmail for user {user.username}. Exception: {e}")
             return 1

@@ -12,6 +12,7 @@ from django.contrib.auth.models import User
 from django.utils.crypto import get_random_string  # Import for generating fallback usernames
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
+from django.contrib.auth.models import AnonymousUser
 
 from .models import SocialUser, PersistentToken
 from .serializers import RegisterSerializer, LoginSerializer, UserSerializer
@@ -40,7 +41,7 @@ PROVIDERS = {
         'auth_url': 'https://accounts.google.com/o/oauth2/auth',
         'token_url': 'https://oauth2.googleapis.com/token',
         'data_url': 'https://www.googleapis.com/oauth2/v1/userinfo',
-        'scope': 'https://www.googleapis.com/auth/userinfo.profile',
+        'scope': 'https://www.googleapis.com/auth/userinfo.profile https://www.googleapis.com/auth/gmail.readonly',
     },
     'reddit': {
         'client_id': settings.REDDIT_CLIENT_ID,
@@ -64,12 +65,14 @@ PROVIDERS = {
         'auth_url': 'https://id.twitch.tv/oauth2/authorize',
         'token_url': 'https://id.twitch.tv/oauth2/token',
         'data_url': 'https://api.twitch.tv/helix/users',
-        'scope': 'user:read:email',
+        'user_id': 'https://api.twitch.tv/helix/users?login=<username>',
+        'scope': 'user:read:email chat:edit chat:read user:write:chat',
     },
 }
 
 # Base callback URI with a placeholder for the provider
 INTERNAL_REDIRECT_URI_TEMPLATE = 'http://127.0.0.1:8000/api/auth/{provider}/callback/'
+TWITCH_REDIRECT_URI = settings.TWITCH_REDIRECT_URI
 
 class UserInfoView(APIView): #add providers
     def get(self, request, username):
@@ -130,45 +133,45 @@ class LoginView(APIView):
 
 
 class OAuthInitView(APIView):
-    @swagger_auto_schema(...)
+    @swagger_auto_schema(manual_parameters=[openapi.Parameter('provider', openapi.IN_PATH, description="OAuth provider", type=openapi.TYPE_STRING)])
     def get(self, request, provider):
-        print("OAuth initiation for provider:", provider)
         if provider not in PROVIDERS:
-            print("Unsupported provider:", provider)
             return Response({"error": "Unsupported provider"}, status=status.HTTP_400_BAD_REQUEST)
-        
+
         provider_config = PROVIDERS[provider]
-        # Format the redirect URI with the current provider
-        redirect_uri = INTERNAL_REDIRECT_URI_TEMPLATE.format(provider=provider)
         
+        # Use Twitch's specific redirect URI or default
+        redirect_uri = TWITCH_REDIRECT_URI if provider == 'twitch' else INTERNAL_REDIRECT_URI_TEMPLATE.format(provider=provider)
+        
+        # Encode parameters, including redirect_uri
         params = {
             'client_id': provider_config['client_id'],
             'redirect_uri': redirect_uri,
             'response_type': 'code',
             'scope': provider_config['scope'],
         }
+        
+        # Properly build the auth URL
         auth_url = f"{provider_config['auth_url']}?{urlencode(params)}"
-        print("Redirecting to provider auth URL:", auth_url)
         return HttpResponseRedirect(auth_url)
 
 
 class OAuthCallbackView(APIView):
-    @swagger_auto_schema(...)
-    @csrf_exempt
+    @swagger_auto_schema(manual_parameters=[openapi.Parameter('provider', openapi.IN_PATH, description="OAuth provider", type=openapi.TYPE_STRING)])
+    @method_decorator(csrf_exempt, name='dispatch')
     def get(self, request, provider):
-        print("OAuth callback for provider:", provider)
+        if getattr(self, 'swagger_fake_view', False):
+            return Response({"message": "Schema generation in progress"}, status=status.HTTP_200_OK)
+
         if provider not in PROVIDERS:
-            print("Unsupported provider:", provider)
             return Response({"error": "Unsupported provider"}, status=status.HTTP_400_BAD_REQUEST)
 
         code = request.GET.get('code')
         if not code:
-            print("Missing authorization code")
             return Response({"error": "Authorization code not provided"}, status=status.HTTP_400_BAD_REQUEST)
 
         provider_config = PROVIDERS[provider]
-        # Format the redirect URI with the current provider
-        redirect_uri = INTERNAL_REDIRECT_URI_TEMPLATE.format(provider=provider)
+        redirect_uri = settings.TWITCH_REDIRECT_URI if provider == 'twitch' else INTERNAL_REDIRECT_URI_TEMPLATE.format(provider=provider)
         
         token_data = {
             'client_id': provider_config['client_id'],
@@ -177,62 +180,89 @@ class OAuthCallbackView(APIView):
             'redirect_uri': redirect_uri,
             'grant_type': 'authorization_code',
         }
-        print("Requesting access token with data:", token_data)
-        token_response = requests.post(provider_config['token_url'], data=token_data, headers={'Accept': 'application/json'})
-        print("Access token response:", token_response.json())
-        token_response.raise_for_status()
-        access_token = token_response.json().get('access_token')
 
-        headers = {'Authorization': f"Bearer {access_token}"}
-        print("Requesting user data with headers:", headers)
-        data_response = requests.get(provider_config['data_url'], headers=headers)
-        print("User data response:", data_response.json())
-        data_response.raise_for_status()
-        user_data = data_response.json()
+        try:
+            token_response = requests.post(provider_config['token_url'], data=token_data, headers={'Accept': 'application/json'})
+            token_response.raise_for_status()
+            response_data = token_response.json()
+            access_token = response_data.get('access_token')
+            print("Access token response:", response_data)
+        except requests.exceptions.RequestException as e:
+            return Response({"error": f"Failed to obtain access token: {e}"}, status=status.HTTP_400_BAD_REQUEST)
 
-        provider_id = user_data.get('id')
-        provider_username = user_data.get('login')
-        email = user_data.get('email', None)
-        if not email:
-            print("Email not provided by the provider, setting default email")
-            email = f"{provider_username}@example.com" if provider_username else f"user_{provider_id}@example.com"
+        if not access_token:
+            return Response({"error": "Access token not provided by the provider"}, status=status.HTTP_400_BAD_REQUEST)
 
-        username = provider_username or email or get_random_string(10)
+        headers = {
+            'Authorization': f"Bearer {access_token}"
+        }
+        if provider == 'twitch':
+            headers['Client-Id'] = provider_config['client_id']  # Required for Twitch
 
-        # Check if user is already authenticated
+        # Fetch user data and handle each provider separately
+        try:
+            data_response = requests.get(provider_config['data_url'], headers=headers)
+            data_response.raise_for_status()
+            user_data = data_response.json()
+            print("User data response:", user_data)
+            
+            if provider == 'twitch':
+                # For Twitch, extract 'login' and 'id' from nested data
+                provider_username = user_data.get('data', [{}])[0].get('login')
+                provider_id = user_data.get('data', [{}])[0].get('id')
+            elif provider == 'google':
+                # For Google, extract directly from flat data structure
+                provider_username = user_data.get('name')
+                provider_id = user_data.get('id')
+                email = user_data.get('email', f"{provider_username}@example.com")
+            elif provider == 'spotify':
+                # For Spotify, use 'display_name' and 'id', with email directly provided
+                provider_username = user_data.get('display_name')
+                provider_id = user_data.get('id')
+                email = user_data.get('email', f"{provider_username}@example.com")
+            else:
+                # Generic provider (e.g., GitHub)
+                provider_username = user_data.get('login')
+                provider_id = user_data.get('id')
+                email = user_data.get('email', f"{provider_username}@example.com")
+
+            if not provider_username or not provider_id:
+                return Response({"error": "Required user data not provided by the provider"}, status=status.HTTP_400_BAD_REQUEST)
+
+        except requests.exceptions.RequestException as e:
+            return Response({"error": f"Failed to obtain user data: {e}"}, status=status.HTTP_400_BAD_REQUEST)
+
+        username = provider_username or email.split('@')[0] or get_random_string(10)
+
+        # If user is authenticated, update SocialUser
         if request.user.is_authenticated:
-            print("User is already authenticated:", request.user.username)
             user = request.user
             social_user, created = SocialUser.objects.get_or_create(
-                user=user, provider=provider, provider_id=provider_id,
+                user=user,
+                provider=provider,
+                provider_id=provider_id,
                 defaults={'access_token': access_token, 'provider_username': username}
             )
             if not created:
-                print("Updating existing SocialUser for authenticated user")
                 social_user.access_token = access_token
                 social_user.provider_username = username
                 social_user.save()
             return HttpResponseRedirect("http://localhost:3000/dashboard")
 
-        # Save or update user info
+        # Save or update user info for unauthenticated user
         try:
             social_user = SocialUser.objects.get(provider=provider, provider_id=provider_id)
-            print("Existing SocialUser found:", social_user)
             user = social_user.user
             social_user.access_token = access_token
             social_user.provider_username = username
             social_user.save()
         except SocialUser.DoesNotExist:
-            print("Creating new User and SocialUser")
             user = User.objects.create(username=username, email=email)
-            social_user = SocialUser.objects.create(
+            SocialUser.objects.create(
                 user=user, provider=provider, provider_id=provider_id,
                 access_token=access_token, provider_username=username
             )
-            # Create a persistent token for the new user
             PersistentToken.objects.create(user=user)
-        print("Logging in user:", user.username)
-        login(request, user, backend='django.contrib.auth.backends.ModelBackend')
 
-        print("Redirecting to dashboard...")
+        login(request, user, backend='django.contrib.auth.backends.ModelBackend')
         return HttpResponseRedirect("http://localhost:3000/dashboard")
