@@ -15,7 +15,6 @@ DEBUG = os.getenv('DEBUG', 'False') == 'True'
 
 ALLOWED_HOSTS = [
     '127.0.0.1',
-    '192.168.0.123',
     'localhost',
     'https://5a70-45-154-248-67.ngrok-free.app',
     '5a70-45-154-248-67.ngrok-free.app',
