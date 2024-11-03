@@ -1,7 +1,5 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:http/http.dart' as http;
 import '../shared/service_box.dart';
 import 'web_nav_bar.dart';
 import '../shared/user_service.dart';
@@ -30,24 +28,12 @@ class WebDashboardState extends State<WebDashboard> {
   ];
 
   void handleConnect(String serviceName, String loginUrl) async {
-    if (kDebugMode) {
-      print('Connecting to $serviceName');
-    }
     final Uri loginUri = Uri.parse(loginUrl);
     if (await canLaunchUrl(loginUri)) {
       await launchUrl(loginUri);
-      // Await server response for 200 status code
-      final response = await http.get(loginUri);
-      if (response.statusCode == 302 || response.statusCode == 200) {
-        if (kDebugMode) {
-          print('Successfully connected to $serviceName');
-        }
-        setState(() {
-          services.firstWhere((service) => service.name == serviceName).isConnected = true;
-        });
-      } else {
-        throw 'Failed to connect to $serviceName: ${response.statusCode}';
-      }
+      setState(() {
+        services.firstWhere((service) => service.name == serviceName).isConnected = true;
+      });
     } else {
       throw 'Could not launch $loginUrl';
     }
