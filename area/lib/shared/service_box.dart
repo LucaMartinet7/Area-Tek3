@@ -58,10 +58,10 @@ class ServiceBox extends StatelessWidget {
       case 'Google':
         borderColor = Colors.blue;
         break;
-      case 'Deezer':
+      case 'Youtube':
         borderColor = const Color(0xFFFF0000);
         break;
-      case 'Microsoft':
+      case 'Gmail':
         borderColor = Colors.orange;
         break;
       default:

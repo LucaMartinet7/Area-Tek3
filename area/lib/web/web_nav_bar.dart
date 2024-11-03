@@ -8,11 +8,11 @@ class WebNavBar extends StatelessWidget implements PreferredSizeWidget {
   Widget build(BuildContext context) {
     final services = [
       {'asset': 'assets/vectors/account.png', 'route': '/dashboard', 'isConnected': true},
-      {'asset': 'assets/vectors/spotify.png', 'route': '/spotify', 'isConnected': false},
+      {'asset': 'assets/vectors/spotify.png', 'route': '/spotify', 'isConnected': true},
       {'asset': 'assets/vectors/twitch.png', 'route': '/twitch', 'isConnected': true},
-      {'asset': 'assets/vectors/google.png', 'route': '/google', 'isConnected': false},
-      {'asset': 'assets/vectors/youtube.png', 'route': '/youtube', 'isConnected': false},
-      {'asset': 'assets/vectors/microsoft.png', 'route': '/microsoft', 'isConnected': true},
+      {'asset': 'assets/vectors/google.png', 'route': '/google', 'isConnected': true},
+      {'asset': 'assets/vectors/youtube.png', 'route': '/youtube', 'isConnected': true},
+      {'asset': 'assets/vectors/gmail.png', 'route': '/gmail', 'isConnected': true},
     ];
 
     final connectedServices = services.where((service) => service['isConnected'] as bool).toList();

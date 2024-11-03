@@ -8,7 +8,7 @@ import 'shared/spotify_area.dart';
 import 'shared/twitch_area.dart';
 import 'shared/google_area.dart';
 import 'shared/youtube_area.dart';
-import 'shared/microsoft_area.dart';
+import 'shared/gmail_area.dart';
 import 'mobile/mobile_account.dart';
 import 'web/route_guard.dart';
 import 'package:url_strategy/url_strategy.dart';
@@ -47,7 +47,7 @@ class MyApp extends StatelessWidget {
         '/twitch': (context) => RouteGuard(child: const TwitchPage()),
         '/google': (context) => RouteGuard(child: const GooglePage()),
         '/youtube': (context) => RouteGuard(child: const YoutubePage()),
-        '/microsoft': (context) => RouteGuard(child: const MicrosoftPage()),
+        '/gmail': (context) => RouteGuard(child: const GmailPage()),
         '/about': (context) => const AboutPage(),
         '/account': (context) => RouteGuard(child: const MobileAccount()),
       },

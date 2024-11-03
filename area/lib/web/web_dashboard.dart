@@ -18,10 +18,11 @@ class WebDashboard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final services = [
-      Service('Spotify', 'assets/images/spotify.png', false),
+      Service('Spotify', 'assets/images/spotify.png', true),
       Service('Twitch', 'assets/images/twitch.png', true),
-      Service('Google', 'assets/images/google.png', false),
-      Service('Microsoft', 'assets/images/microsoft.png', true),
+      Service('Google', 'assets/images/google.png', true),
+      Service('Youtube', 'assets/images/youtube.png', true),
+      Service('Gmail', 'assets/images/gmail.png', true),
     ];
 
     void handleConnect(String serviceName) {

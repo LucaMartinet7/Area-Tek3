@@ -22,7 +22,6 @@ class MobileAccount extends StatelessWidget {
       Service('Spotify', 'assets/images/spotify.png', true),
       Service('Twitch', 'assets/images/twitch.png', false),
       Service('Google', 'assets/images/google.png', true),
-      Service('Microsoft', 'assets/images/microsoft.png', false),
     ];
 
     void handleConnect(String serviceName) {

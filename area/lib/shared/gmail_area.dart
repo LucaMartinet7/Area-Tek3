@@ -4,8 +4,8 @@ import 'package:flutter/foundation.dart';
 import '../web/area_page.dart';
 import '../mobile/mobile_area.dart';
 
-class MicrosoftPage extends StatelessWidget {
-  const MicrosoftPage({super.key});
+class GmailPage extends StatelessWidget {
+  const GmailPage({super.key});
 
   static const List<Tuple2<String, String>> list = [
     Tuple2('An Email Outlook received', 'Sends a message in Google chat'),
@@ -17,12 +17,12 @@ class MicrosoftPage extends StatelessWidget {
   Widget build(BuildContext context) {
     if (kIsWeb) {
       return ActionReactionPage(
-        title: 'Microsoft',
+        title: 'Gmail',
         area: list,
       );
     } else {
       return MobileActionReactionPage(
-        title: 'microsoft',
+        title: 'Gmail',
         area: list,
       );
     }
