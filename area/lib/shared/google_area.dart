@@ -20,7 +20,7 @@ class GooglePage extends StatelessWidget {
       );
     } else {
       return MobileActionReactionPage(
-        title: 'Google',
+        title: 'google',
         area: list,
       );
     }

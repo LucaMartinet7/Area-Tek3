@@ -21,7 +21,7 @@ class SpotifyPage extends StatelessWidget {
       );
     } else {
      return MobileActionReactionPage(
-      title: 'Spotify',
+      title: 'spotify',
         area: list,
       );
     }

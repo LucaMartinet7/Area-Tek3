@@ -21,7 +21,7 @@ class TwitchPage extends StatelessWidget {
       );
     } else {
       return MobileActionReactionPage(
-        title: 'Twitch',
+        title: 'twitch',
         area: list,
       );
     }

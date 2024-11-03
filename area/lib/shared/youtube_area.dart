@@ -21,7 +21,7 @@ class YoutubePage extends StatelessWidget {
       );
     } else {
       return MobileActionReactionPage(
-        title: 'YouTube',
+        title: 'youtube',
         area: list,
       );
     }

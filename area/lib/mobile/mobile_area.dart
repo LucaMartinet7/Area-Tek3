@@ -32,6 +32,7 @@ class MobileActionReactionPage extends StatelessWidget {
     double luminance = (0.299 * color.red + 0.587 * color.green + 0.114 * color.blue) / 255;
     return luminance > 0.7;
   }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -41,20 +42,27 @@ class MobileActionReactionPage extends StatelessWidget {
       body: Center(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(20.0),
-          child: Column(
-            children: area.map((actionReaction) {
-              return Padding(
-                padding: const EdgeInsets.symmetric(vertical: 10.0),
-                child: SizedBox(
-                  height: 200,
-                  width: 400,
-                  child: ActionReactionRectangle(
-                    actionReaction: actionReaction,
-                    color: _getRandomColor(),
+            child: Column(
+            children: [
+              Image.asset(
+              'assets/vectors/$title.png',
+              height: 50,
+              ),
+              const SizedBox(height: 20),
+              ...area.map((actionReaction) {
+                return Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 10.0),
+                  child: SizedBox(
+                    height: 200,
+                    width: 400,
+                    child: ActionReactionRectangle(
+                      actionReaction: actionReaction,
+                      color: _getRandomColor(),
+                    ),
                   ),
-                ),
-              );
-            }).toList(),
+                );
+              }).toList(),
+            ],
           ),
         ),
       ),
