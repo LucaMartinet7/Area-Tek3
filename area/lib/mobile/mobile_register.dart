@@ -62,7 +62,7 @@ class MobileRegisterState extends State<MobileRegister> {
                     const SizedBox(height: 20),
                     PasswordField(controller: _passwordController),
                     const SizedBox(height: 20),
-                    const SocialLoginButtons(),
+                    // const SocialLoginButtons(),
                     const SizedBox(height: 20),
                     RegisterButton(
                       nameController: _nameController,
