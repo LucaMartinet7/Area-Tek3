@@ -7,9 +7,9 @@ import '../mobile/mobile_area.dart';
 class YoutubePage extends StatelessWidget {
   const YoutubePage({super.key});
 
-  static const List<Tuple2<String, String>> list = [
-    Tuple2('Upload\'s a Video', 'Creates a Spotify Playlist'),
-    Tuple2('Watches a Video', 'Plays a Song (Crazy Frog) on Spotify'),
+  static const List<Tuple3<String, String, String>> list = [
+    Tuple3('Test Action', 'Test Reaction', ' ' ),
+    Tuple3('Test Action', 'Test Reaction', ' ')
   ];
 
   @override
