@@ -10,4 +10,6 @@ urlpatterns = [
     path('run-spotify-reaction/', RunSpotifyReaction.as_view(), name='run-spotify-reaction'),
     path('run-twitch-reaction/', RunTwitchReaction.as_view(), name='run-twitch-reaction'),
     path('check-for-new-emails/', CheckGmailNew.as_view(), name='check-for-new-emails'),
+    path('check-for-new-emails/', CheckGmailNew.as_view(), name='check-for-new-emails'),
+    path('area-check-gmail-bluesky/', AREACheckGmailBluesky.as_view(), name='check-gmail-bluesky'),
 ]

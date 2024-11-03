@@ -130,4 +130,10 @@ class RunTwitchReaction(APIView):
             return Response({"message": "Twitch reaction executed successfully."}, status=status.HTTP_200_OK)
         else:
             return Response("error: status 500" , status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-        
+
+class AREACheckGmailBluesky(APIView):
+    def post(self, request):
+        if check_gmail_for_bluesky() == 0: 
+            return Response({"message": "Gmail status check executed successfully."}, status=status.HTTP_200_OK)
+        else:
+            return Response("error: status 500" , status=status.HTTP_500_INTERNAL_SERVER_ERROR)
