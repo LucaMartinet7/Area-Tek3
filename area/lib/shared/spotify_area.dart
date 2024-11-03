@@ -7,11 +7,11 @@ import '../mobile/mobile_area.dart';
 class SpotifyPage extends StatelessWidget {
   const SpotifyPage({super.key});
 
-  static const List<Tuple2<String, String>> list = [
-    Tuple2('A new song is played', 'Send a message in users Twitch chat'),
-    Tuple2('If the Beatles are playing', 'Send Microsoft Outlook email'),
+  static const List<Tuple3<String, String, String>> list = [
+    Tuple3('Test Action', 'Test Reaction', ' ' ),
+    Tuple3('Test Action', 'Test Reaction', ' ')
   ];
-
+  
   @override
   Widget build(BuildContext context) {
     if (kIsWeb) {
