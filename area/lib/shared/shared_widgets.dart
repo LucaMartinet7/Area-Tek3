@@ -207,7 +207,6 @@ class CustomTextWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return Stack(
       children: [
-        // Stroke text
         RichText(
           text: TextSpan(
             children: [

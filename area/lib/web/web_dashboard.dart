@@ -158,7 +158,7 @@ class WebDashboardState extends State<WebDashboard> {
               return _buildProfileContent(
                 CircleAvatar(
                   radius: 100,
-                  backgroundImage: NetworkImage(userProfile.profileImagePath),
+                  child: const Icon(Icons.person, size: 150),
                 ),
                 userProfile.username,
                 userProfile.email,
