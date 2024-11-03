@@ -61,7 +61,7 @@ class MobileActionReactionPage extends StatelessWidget {
                     ),
                   ),
                 );
-              }).toList(),
+              }),
             ],
           ),
         ),
