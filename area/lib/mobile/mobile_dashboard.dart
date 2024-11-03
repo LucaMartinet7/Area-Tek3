@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import '../shared/service_name_box.dart';
 import 'mobile_nav_bar.dart';
+import '../shared/exit_button.dart' show buildExitButton;
 
 class Service {
   final String logoPath;
@@ -22,7 +23,7 @@ class MobileDashboard extends StatelessWidget {
       Service('assets/vectors/twitch.png', false, '/twitch', [const Color(0xFF9146FF)]),
       Service('assets/vectors/google.png', true, '/google', [Colors.blue, Colors.red, Colors.yellow, Colors.green]),
       Service('assets/vectors/youtube.png', true, '/youtube', [const Color(0xFFFF0000)]),
-      Service('assets/vectors/microsoft.png', false, '/microsoft', [Colors.blue, Colors.green, Colors.yellow, Colors.red], ),
+      Service('assets/images/bluesky.png', false, '/bluesky', [Colors.blue, Colors.green, Colors.yellow, Colors.red], ),
     ];
 
     void handleConnect(BuildContext context, String route) {
@@ -35,6 +36,9 @@ class MobileDashboard extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         automaticallyImplyLeading: false,
+        actions: [
+          buildExitButton(context),
+        ],
       ),
       
       body: Center(

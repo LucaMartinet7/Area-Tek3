@@ -22,7 +22,7 @@ Future<String> getApiUrl(String endpoint) async {
   if (kIsWeb) {
     return 'http://127.0.0.1:8000/$endpoint';
   } else {
-    return 'http://PERSONAL_IP/$endpoint'; //make sur the ip is correct and added to settings.py ALLOWED_HOSTS
+    return 'http://192.168.0.123:8000/$endpoint'; //make sur the ip is correct and added to settings.py ALLOWED_HOSTS
   }
 }
 
