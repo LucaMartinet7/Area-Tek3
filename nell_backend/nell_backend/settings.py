@@ -16,6 +16,7 @@ DEBUG = os.getenv('DEBUG', 'False') == 'True'
 ALLOWED_HOSTS = [
     '127.0.0.1',
     'localhost',
+    '192.168.0.123',
     'https://5a70-45-154-248-67.ngrok-free.app',
     '5a70-45-154-248-67.ngrok-free.app',
 ]
@@ -212,14 +213,16 @@ CORS_ALLOWED_ORIGINS = [
 ]
 
 CSRF_TRUSTED_ORIGINS = [
+    "http://localhost:8000",
+    "http://127.0.0.1:8000",
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+    "http://localhost:45195",
     'https://5a70-45-154-248-67.ngrok-free.app',
     'http://5a70-45-154-248-67.ngrok-free.app',  # Include both HTTP and HTTPS
 ]
 
 CORS_ALLOW_HEADERS = [
-    '/register',
-    '/login',
-    '/accounts/login/',
     'content-type',
     'authorization',
     'x-csrftoken',

@@ -7,7 +7,7 @@ import 'dart:math';
 
 class ActionReactionPage extends StatelessWidget {
   final String title;
-  final List<Tuple3<String, String, String>> area;
+  final List<Tuple3<String, String, Future<String>>> area;
 
   const ActionReactionPage({
     required this.title,

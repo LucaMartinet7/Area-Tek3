@@ -3,13 +3,15 @@ import 'package:tuple/tuple.dart';
 import 'package:flutter/foundation.dart';
 import '../web/area_page.dart';
 import '../mobile/mobile_area.dart';
+import '../shared/api_service.dart' show getApiUrl;
+
 
 class SpotifyPage extends StatelessWidget {
   const SpotifyPage({super.key});
 
-  static const List<Tuple3<String, String, String>> list = [
-    Tuple3('When play Spotify song', 'Send message in twitch chat', 'http://127.0.0.1:8000/api/googlies/area-check-spotify-twitch/'),
-    Tuple3('When you play Spotify song', 'Post on Bluesky', 'http://127.0.0.1:8000/api/googlies/area-check-spotify-bluesky/')
+  static final List<Tuple3<String, String, Future<String>>> list = [
+    Tuple3('When play Spotify song', 'Send message in twitch chat', getApiUrl('api/googlies/area-check-spotify-twitch/')),
+    Tuple3('When you play Spotify song', 'Post on Bluesky', getApiUrl('api/googlies/area-check-spotify-bluesky/'))
   ];
 
   @override

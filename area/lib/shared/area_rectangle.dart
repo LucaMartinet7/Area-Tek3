@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
 class ActionReactionRectangle extends StatefulWidget {
-  final Tuple3<String, String, String> actionReaction;
+  final Tuple3<String, String, Future<String>> actionReaction;
   final Color color;
 
   const ActionReactionRectangle({
@@ -71,7 +71,7 @@ class ActionReactionRectangleState extends State<ActionReactionRectangle> {
                   activeTrackColor: Colors.green.withOpacity(0.5),
                   onChanged: (value) async {
                   setState(() => _isActive = value);
-                  final url = widget.actionReaction.item3;
+                  final url = await widget.actionReaction.item3;
                   try {
                     final response = await http.post(Uri.parse(url), body: {'isActive': value.toString()});
                     if (response.statusCode == 200) {

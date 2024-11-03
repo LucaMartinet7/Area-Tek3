@@ -9,7 +9,6 @@ import 'shared/twitch_area.dart';
 import 'shared/google_area.dart';
 import 'shared/youtube_area.dart';
 import 'mobile/mobile_account.dart';
-import 'web/route_guard.dart';
 import 'package:url_strategy/url_strategy.dart';
 import 'shared/bluesky_area.dart';
 import 'shared/api_service.dart' show isLoggedIn;

@@ -22,7 +22,7 @@ class MobileDashboard extends StatelessWidget {
       Service('assets/vectors/twitch.png', false, '/twitch', [const Color(0xFF9146FF)]),
       Service('assets/vectors/google.png', true, '/google', [Colors.blue, Colors.red, Colors.yellow, Colors.green]),
       Service('assets/vectors/youtube.png', true, '/youtube', [const Color(0xFFFF0000)]),
-      Service('assets/vectors/microsoft.png', false, '/microsoft', [Colors.blue, Colors.green, Colors.yellow, Colors.red]),
+      Service('assets/vectors/microsoft.png', false, '/microsoft', [Colors.blue, Colors.green, Colors.yellow, Colors.red], ),
     ];
 
     void handleConnect(BuildContext context, String route) {
