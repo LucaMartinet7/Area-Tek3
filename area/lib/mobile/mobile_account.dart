@@ -1,16 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../shared/service_box.dart';
 import '../shared/user_service.dart';
 import 'mobile_nav_bar.dart';
 import '../shared/exit_button.dart' show buildExitButton;
+import '../shared/api_service.dart' show getApiUrl;
 
 class Service {
   final String name;
   final String logoPath;
-  final bool isConnected;
+  bool isConnected;
+  final Future<String> loginUrl;
 
-  Service(this.name, this.logoPath, this.isConnected);
+  Service(this.name, this.logoPath, this.isConnected, this.loginUrl);
 }
 
 class MobileAccount extends StatelessWidget {
@@ -19,66 +22,76 @@ class MobileAccount extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final services = [
-      Service('Spotify', 'assets/images/spotify.png', true),
-      Service('Twitch', 'assets/images/twitch.png', false),
-      Service('Google', 'assets/images/google.png', true),
-      Service('Microsoft', 'assets/images/microsoft.png', false),
+      Service('Spotify', 'assets/images/spotify.png', false, getApiUrl('api/auth/spotify/login/')),
+      Service('Twitch', 'assets/images/twitch.png', false, getApiUrl('api/auth/twitch/login/')),
+      Service('Google', 'assets/images/google.png', false, getApiUrl('api/auth/google/login/')),
+      Service('Bluesky', 'assets/images/bluesky.png', false, Future.value('http://localhost:3000/bluesky/login')),
     ];
 
-    void handleConnect(String serviceName) {
+    void handleConnect(Service service) async {
       if (kDebugMode) {
-        print('Connecting to $serviceName');
+        print('Connecting to ${service.name}');
+      }
+      final url = await service.loginUrl;
+      if (await canLaunchUrl(Uri.parse(url))) {
+        await launchUrl(Uri.parse(url));
+        service.isConnected = true;
+      } else {
+        if (kDebugMode) {
+          print('Could not launch $url');
+        }
       }
     }
 
     return Scaffold(
       appBar: AppBar(
-      automaticallyImplyLeading: false,
-      leading: _buildAboutButton(context),
-      actions: [
-        buildExitButton(context),
-      ],
+        automaticallyImplyLeading: false,
+        leading: _buildAboutButton(context),
+        actions: [
+          buildExitButton(context),
+        ],
       ),
       body: Center(
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: FutureBuilder<String?>(
-        future: getUsername(),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-          return const CircularProgressIndicator();
-          } else if (snapshot.hasError || !snapshot.hasData) {
-          return const Text('Failed to load username');
-          } else {
-          final username = snapshot.data!;
-          return Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-            _buildProfile(context, username),
-            const SizedBox(height: 16),
-            _buildServiceBoxes(services, handleConnect),
-            ],
-          );
-          }
-        },
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: FutureBuilder<String?>(
+            future: getUsername(),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const CircularProgressIndicator();
+              } else if (snapshot.hasError || !snapshot.hasData) {
+                return const Text('Failed to load username');
+              } else {
+                final username = snapshot.data!;
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _buildProfile(context, username),
+                    const SizedBox(height: 16),
+                    _buildServiceBoxes(services, handleConnect),
+                  ],
+                );
+              }
+            },
+          ),
         ),
-      ),
       ),
       bottomNavigationBar: const MobileNavBar(),
     );
-    }
-    Widget _buildAboutButton(BuildContext context) {
+  }
+
+  Widget _buildAboutButton(BuildContext context) {
     return IconButton(
       icon: const Icon(Icons.info_outline),
       onPressed: () {
-      Navigator.pushNamed(context, '/about');
+        Navigator.pushNamed(context, '/about');
       },
     );
-    }
+  }
 
   Widget _buildProfile(BuildContext context, String username) {
     return Container(
-      width: double.infinity, // Make the container take the full width of the screen
+      width: double.infinity,
       padding: const EdgeInsets.all(16.0),
       child: FutureBuilder<UserProfile>(
         future: fetchUserProfile(username),
@@ -146,7 +159,7 @@ class MobileAccount extends StatelessWidget {
     );
   }
 
-  Widget _buildServiceBoxes(List<Service> services, void Function(String) handleConnect) {
+  Widget _buildServiceBoxes(List<Service> services, void Function(Service) handleConnect) {
     return Expanded(
       child: ListView.builder(
         padding: const EdgeInsets.all(20.0),
@@ -164,7 +177,7 @@ class MobileAccount extends StatelessWidget {
                   logoPath: service.logoPath,
                   isConnected: service.isConnected,
                   serviceName: service.name,
-                  onConnect: () => handleConnect(service.name),
+                  onConnect: () => handleConnect(service),
                 ),
               ),
             ),

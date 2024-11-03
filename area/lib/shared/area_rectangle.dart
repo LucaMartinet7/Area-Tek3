@@ -1,9 +1,10 @@
 import 'package:flutter/foundation.dart';
 import 'package:tuple/tuple.dart';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 
 class ActionReactionRectangle extends StatefulWidget {
-  final Tuple2<String, String> actionReaction;
+  final Tuple3<String, String, Future<String>> actionReaction;
   final Color color;
 
   const ActionReactionRectangle({
@@ -64,7 +65,30 @@ class ActionReactionRectangleState extends State<ActionReactionRectangle> {
                 ),
                 Switch(
                   value: _isActive,
-                  onChanged: (value) => setState(() => _isActive = value),
+                  activeColor: Colors.green,
+                  inactiveThumbColor: Colors.red,
+                  inactiveTrackColor: Colors.red.withOpacity(0.5),
+                  activeTrackColor: Colors.green.withOpacity(0.5),
+                  onChanged: (value) async {
+                  setState(() => _isActive = value);
+                  final url = await widget.actionReaction.item3;
+                  try {
+                    final response = await http.post(Uri.parse(url), body: {'isActive': value.toString()});
+                    if (response.statusCode == 200) {
+                    if (kDebugMode) {
+                      print('Post successful');
+                    }
+                    } else {
+                    if (kDebugMode) {
+                      print('Failed to post: ${response.statusCode}');
+                    }
+                    }
+                  } catch (e) {
+                    if (kDebugMode) {
+                    print('Error: $e');
+                    }
+                  }
+                  },
                 ),
               ],
             ),

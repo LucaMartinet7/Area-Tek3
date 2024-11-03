@@ -20,9 +20,9 @@ Future<http.Response> postRequest({
 
 Future<String> getApiUrl(String endpoint) async {
   if (kIsWeb) {
-    return 'http://127.0.0.1:8000/api/$endpoint';
+    return 'http://127.0.0.1:8000/$endpoint';
   } else {
-    return 'http://SERVERIP:8000/api/$endpoint'; //make sur the ip is correct and added to settings.py ALLOWED_HOSTS
+    return 'http://CUSTOMIP:8000/$endpoint'; //make sur the ip is correct and added to settings.py ALLOWED_HOSTS
   }
 }
 
@@ -32,7 +32,7 @@ Future<void> login({
   required String password,
 }) async {
   final response = await postRequest(
-    url: await getApiUrl('auth/login/'),
+    url: await getApiUrl('api/auth/login/'),
     headers: {'Content-Type': 'application/json'},
     body: {
       'username': username,
@@ -69,7 +69,7 @@ Future<void> register({
   required String email,
 }) async {
   final response = await postRequest(
-    url: await getApiUrl('auth/register/'),
+    url: await getApiUrl('api/auth/register/'),
     headers: {'Content-Type': 'application/json'},
     body: {
       'username': username,
@@ -93,7 +93,7 @@ Future<void> register({
 
 Future<void> obtainAndSaveToken(String username, String password) async {
   final response = await http.post(
-    Uri.parse(await getApiUrl('auth/token/')),
+    Uri.parse(await getApiUrl('api/auth/token/')),
     headers: {'Content-Type': 'application/json'},
     body: jsonEncode({'username': username, 'password': password}),
   );
@@ -114,7 +114,7 @@ Future<void> obtainAndSaveToken(String username, String password) async {
 
 Future<bool> isTokenValid(String refreshToken) async {
   final response = await http.post(
-    Uri.parse(await getApiUrl('auth/token/refresh/')),
+    Uri.parse(await getApiUrl('api/auth/token/refresh/')),
     headers: {
       'Content-Type': 'application/json',
       'accept': 'application/json',
@@ -141,7 +141,7 @@ Future<void> logout(BuildContext context) async {
 }
 
 Future<List<String>> fetchActions() async {
-  final response = await http.get(Uri.parse(await getApiUrl('actions/')));
+  final response = await http.get(Uri.parse(await getApiUrl('api/actions/')));
 
   if (response.statusCode == 200) {
     List<dynamic> data = json.decode(response.body);
@@ -152,7 +152,7 @@ Future<List<String>> fetchActions() async {
 }
 
 Future<List<String>> fetchReactions() async {
-  final response = await http.get(Uri.parse(await getApiUrl('reactions/')));
+  final response = await http.get(Uri.parse(await getApiUrl('api/reactions/')));
 
   if (response.statusCode == 200) {
     List<dynamic> data = json.decode(response.body);

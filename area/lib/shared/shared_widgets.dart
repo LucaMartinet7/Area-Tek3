@@ -76,8 +76,8 @@ class SocialLoginButtons extends StatelessWidget {
           launchURL('http://127.0.0.1:8000/api/auth/google/login/');
         }),
         const SizedBox(width: 10),
-        _buildSocialButton('assets/images/facebook.png', () {
-          // Handle Facebook login action
+        _buildSocialButton('assets/images/github.png', () {
+          launchURL('http://127.0.0.1:8000/api/auth/github/login/');
         }),
       ],
     );
@@ -207,7 +207,6 @@ class CustomTextWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return Stack(
       children: [
-        // Stroke text
         RichText(
           text: TextSpan(
             children: [
@@ -221,7 +220,7 @@ class CustomTextWidget extends StatelessWidget {
                   foreground: Paint()
                     ..style = PaintingStyle.stroke
                     ..strokeWidth = 3
-                    ..color = Colors.black, // Stroke color
+                    ..color = Colors.black,
                 ),
               ),
               TextSpan(text: ".", style: _buildTextStyle(Colors.transparent)),

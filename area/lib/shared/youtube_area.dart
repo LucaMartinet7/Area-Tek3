@@ -3,13 +3,16 @@ import 'package:tuple/tuple.dart';
 import 'package:flutter/foundation.dart';
 import '../web/area_page.dart';
 import '../mobile/mobile_area.dart';
+import '../shared/api_service.dart' show getApiUrl;
+
 
 class YoutubePage extends StatelessWidget {
   const YoutubePage({super.key});
 
-  static const List<Tuple2<String, String>> list = [
-    Tuple2('Upload\'s a Video', 'Creates a Spotify Playlist'),
-    Tuple2('Watches a Video', 'Plays a Song (Crazy Frog) on Spotify'),
+  static final List<Tuple3<String, String, Future<String>>> list = [
+    Tuple3('Follow a youtube channel', 'Post on Bluesky', getApiUrl('googlies/area-check-youtube-bluesky/')),
+    Tuple3('Follow a youtube channel', 'Play music on Spotify', getApiUrl('googlies/area-check-youtube-spotify/')),
+    Tuple3('Follow a youtube channel', 'Send a message in twitch chat', getApiUrl('googlies/area-check-youtube-twitch/'))
   ];
 
   @override

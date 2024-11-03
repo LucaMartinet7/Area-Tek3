@@ -1,10 +1,9 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:http/http.dart' as http;
 import '../shared/service_box.dart';
 import 'web_nav_bar.dart';
 import '../shared/user_service.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class Service {
   final String name;
@@ -27,29 +26,69 @@ class WebDashboardState extends State<WebDashboard> {
     Service('Spotify', 'assets/images/spotify.png', false, 'http://127.0.0.1:8000/api/auth/spotify/login/'),
     Service('Twitch', 'assets/images/twitch.png', false, 'http://127.0.0.1:8000/api/auth/twitch/login/'),
     Service('Google', 'assets/images/google.png', false, 'http://127.0.0.1:8000/api/auth/google/login/'),
+    Service('YouTube', 'assets/images/youtube.png', false, 'http://127.0.0.1:8000/api/auth/google/login/'),
+    Service('Bluesky', 'assets/images/bluesky.png', false, 'http://localhost:3000/bluesky/login'),
   ];
 
-  void handleConnect(String serviceName, String loginUrl) async {
-    if (kDebugMode) {
-      print('Connecting to $serviceName');
-    }
-    final Uri loginUri = Uri.parse(loginUrl);
-    if (await canLaunchUrl(loginUri)) {
-      await launchUrl(loginUri);
-      // Await server response for 200 status code
-      final response = await http.get(loginUri);
-      if (response.statusCode == 302 || response.statusCode == 200) {
-        if (kDebugMode) {
-          print('Successfully connected to $serviceName');
-        }
-        setState(() {
-          services.firstWhere((service) => service.name == serviceName).isConnected = true;
-        });
-      } else {
-        throw 'Failed to connect to $serviceName: ${response.statusCode}';
+  @override
+  void initState() {
+    super.initState();
+    _loadServiceConnections();
+  }
+
+  Future<void> _loadServiceConnections() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      for (var service in services) {
+        service.isConnected = prefs.getBool(service.name) ?? false;
       }
+    });
+  }
+
+  Future<void> _saveConnectionState(String serviceName, bool isConnected) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(serviceName, isConnected);
+  }
+
+  void handleConnect(String serviceName, String loginUrl) async {
+    final service = services.firstWhere((service) => service.name == serviceName);
+
+    if (service.isConnected) {
+      setState(() {
+        service.isConnected = false;
+      });
+      await _saveConnectionState(service.name, false);
     } else {
-      throw 'Could not launch $loginUrl';
+      final Uri loginUri = Uri.parse(loginUrl);
+      if (await canLaunchUrl(loginUri)) {
+        await launchUrl(loginUri);
+        setState(() {
+          service.isConnected = true;
+        });
+        await _saveConnectionState(service.name, true);
+      } else {
+        throw 'Could not launch $loginUrl';
+      }
+    }
+  }
+
+  void handleDisconnect(String serviceName) async {
+    final service = services.firstWhere((service) => service.name == serviceName);
+    setState(() {
+      service.isConnected = false;
+    });
+    await _saveConnectionState(service.name, false);
+  }
+
+  void resetConnections() async {
+    setState(() {
+      for (var service in services) {
+        service.isConnected = false;
+      }
+    });
+    final prefs = await SharedPreferences.getInstance();
+    for (var service in services) {
+      await prefs.setBool(service.name, false);
     }
   }
 
@@ -119,7 +158,7 @@ class WebDashboardState extends State<WebDashboard> {
               return _buildProfileContent(
                 CircleAvatar(
                   radius: 100,
-                  backgroundImage: NetworkImage(userProfile.profileImagePath),
+                  child: const Icon(Icons.person, size: 150),
                 ),
                 userProfile.username,
                 userProfile.email,
@@ -164,14 +203,27 @@ class WebDashboardState extends State<WebDashboard> {
       flex: 1,
       child: Column(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        children: services
-            .map((service) => ServiceBox(
+        children: services.map((service) {
+          return Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Expanded(
+                child: ServiceBox(
                   logoPath: service.logoPath,
                   isConnected: service.isConnected,
                   onConnect: () => handleConnect(service.name, service.loginUrl),
                   serviceName: service.name,
-                ))
-            .toList(),
+                ),
+              ),
+              if (service.isConnected)
+                IconButton(
+                  icon: const Icon(Icons.logout),
+                  onPressed: () => handleDisconnect(service.name),
+                  tooltip: 'Disconnect',
+                ),
+            ],
+          );
+        }).toList(),
       ),
     );
   }
