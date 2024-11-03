@@ -1,71 +1,79 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../shared/exit_button.dart';
+
+const List<Map<String, String>> services = [
+  {'asset': 'assets/vectors/account.png', 'route': '/dashboard', 'name': 'Account'},
+  {'asset': 'assets/vectors/spotify.png', 'route': '/spotify', 'name': 'Spotify'},
+  {'asset': 'assets/vectors/twitch.png', 'route': '/twitch', 'name': 'Twitch'},
+  {'asset': 'assets/vectors/google.png', 'route': '/google', 'name': 'Google'},
+  {'asset': 'assets/vectors/youtube.png', 'route': '/youtube', 'name': 'YouTube'},
+  {'asset': 'assets/vectors/microsoft.png', 'route': '/microsoft', 'name': 'Microsoft'},
+];
 
 class WebNavBar extends StatelessWidget implements PreferredSizeWidget {
   const WebNavBar({super.key});
 
+  Future<List<Map<String, String>>> _getConnectedServices() async {
+    final prefs = await SharedPreferences.getInstance();
+    final connectedServices = services.where((service) {
+      final name = service['name']!;
+      return name == 'Account' || (prefs.getBool(name) ?? false);
+    }).toList();
+    return connectedServices;
+  }
+
   @override
   Widget build(BuildContext context) {
-    final services = [
-      {'asset': 'assets/vectors/account.png', 'route': '/dashboard', 'isConnected': true},
-      {'asset': 'assets/vectors/spotify.png', 'route': '/spotify', 'isConnected': false},
-      {'asset': 'assets/vectors/twitch.png', 'route': '/twitch', 'isConnected': true},
-      {'asset': 'assets/vectors/google.png', 'route': '/google', 'isConnected': false},
-      {'asset': 'assets/vectors/youtube.png', 'route': '/youtube', 'isConnected': false},
-      {'asset': 'assets/vectors/microsoft.png', 'route': '/microsoft', 'isConnected': true},
-    ];
-
-    final connectedServices = services.where((service) => service['isConnected'] as bool).toList();
     final currentRoute = ModalRoute.of(context)?.settings.name;
 
-    return Container(
-      decoration: BoxDecoration(
-        border: Border.all(
-          color: const Color.fromARGB(255, 140, 211, 255),
-          width: 5,
-        ),
-      ),
-      child: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        leading: buildExitButton(context),
-        flexibleSpace: Row(
-          children: <Widget>[
-            Expanded(
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: connectedServices.map((service) {
-                  return _buildNavButton(
-                    context,
-                    service['asset'] as String,
-                    service['route'] as String,
-                    service['isConnected'] as bool,
-                    currentRoute == service['route'],
-                  );
-                }).toList(),
-              ),
+    return FutureBuilder<List<Map<String, String>>>(
+      future: _getConnectedServices(),
+      builder: (context, snapshot) {
+        if (!snapshot.hasData) return const SizedBox(); // Display nothing while loading
+
+        return Container(
+          decoration: BoxDecoration(
+            border: Border.all(color: const Color.fromARGB(255, 140, 211, 255), width: 5),
+          ),
+          child: AppBar(
+            backgroundColor: Colors.transparent,
+            elevation: 0,
+            leading: buildExitButton(context),
+            flexibleSpace: Row(
+              children: [
+                Expanded(
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: snapshot.data!.map((service) {
+                      return _buildNavButton(
+                        context,
+                        service['asset']!,
+                        service['route']!,
+                        isCurrent: currentRoute == service['route'],
+                      );
+                    }).toList(),
+                  ),
+                ),
+                _buildNavButton(context, 'assets/vectors/info.png', '/about', isCurrent: currentRoute == '/about'),
+              ],
             ),
-            _buildNavButton(context, 'assets/vectors/info.png', '/about', true, currentRoute == '/about'),
-          ],
-        ),
-      ),
+          ),
+        );
+      },
     );
   }
 
-  Widget _buildNavButton(BuildContext context, String assetPath, String route, bool isConnected, bool isCurrentPage) {
+  Widget _buildNavButton(BuildContext context, String assetPath, String route, {required bool isCurrent}) {
     return IconButton(
-      onPressed: isConnected && ModalRoute.of(context)?.settings.name != route
+      onPressed: ModalRoute.of(context)?.settings.name != route
           ? () => Navigator.pushNamed(context, route)
           : null,
       icon: Image.asset(
         assetPath,
         width: 32,
         height: 32,
-        color: isCurrentPage
-            ? Colors.blue
-            : isConnected
-                ? const Color.fromARGB(255, 140, 211, 255)
-                : Colors.grey,
+        color: isCurrent ? Colors.blue : const Color.fromARGB(255, 140, 211, 255),
       ),
     );
   }
