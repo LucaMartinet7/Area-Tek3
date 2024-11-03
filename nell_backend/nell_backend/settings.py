@@ -61,7 +61,9 @@ TWITCH_WEBHOOK_SECRET = config('TWITCH_WEBHOOK_SECRET')
 DISCORD_WEBHOOK_URL = config('DISCORD_WEBHOOK_URL')
 
 REDDIT_CLIENT_ID = config('REDDIT_CLIENT_ID')
-REDDIT_CLIENT_SECRET = config('REDDIT_CLIENT_SECRET')
+REDDIT_CLIENT_SECRET = config('REDDIT_CLIENT_SECRET')\
+
+YOUTUBE_CHANNEL_ID = config('YOUTUBE_CHANNEL_ID')
 
 # OAuth URL Configuration
 AUTHORIZATION_URL_GITHUB = config('AUTHORIZATION_URL_GITHUB')
@@ -181,6 +183,9 @@ DATABASES = {
         'PASSWORD': os.getenv('DB_PASSWORD'),
         'HOST': os.getenv('DB_HOST'),
         'PORT': os.getenv('DB_PORT'),
+        'OPTIONS': {
+            'connect_timeout': 30,
+    }
     }
 }
 
@@ -212,11 +217,7 @@ CORS_ALLOWED_ORIGINS = [
 ]
 
 CSRF_TRUSTED_ORIGINS = [
-    "http://localhost:8000",
-    "http://127.0.0.1:8000",
-    "http://localhost:3000",
-    "http://127.0.0.1:3000",
-    "http://localhost:45195",
+    
     'https://5a70-45-154-248-67.ngrok-free.app',
     'http://5a70-45-154-248-67.ngrok-free.app',  # Include both HTTP and HTTPS
 ]

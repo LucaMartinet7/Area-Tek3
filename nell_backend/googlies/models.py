@@ -26,3 +26,26 @@ class SpotifySongReaction(models.Model):
 
     def __str__(self):
         return f"{self.user.username} - Spotify Song Reaction"
+
+class SpotifyReceivedAction(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.user.username} - Spotify Received Action"
+
+class YouTubeSubscriptionCheck(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    channel_id = models.CharField(max_length=255)
+    checked_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.user.username} - YouTube Subscription Check for {self.channel_id}"
+
+class YouTubeReaction(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    video_id = models.CharField(max_length=255)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.user.username} - YouTube Reaction for video {self.video_id}"
