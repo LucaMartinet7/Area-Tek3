@@ -25,7 +25,7 @@ class ServiceBox extends StatelessWidget {
         children: [
           Image.asset(
             logoPath,
-            height: 50,
+            height: 40,
           ),
           const SizedBox(width: 10),
           GestureDetector(
@@ -36,6 +36,7 @@ class ServiceBox extends StatelessWidget {
                 color: isConnected ? Colors.green : Colors.red,
                 fontSize: 32,
                 fontWeight: FontWeight.bold,
+                fontFamily: 'ClashGrotesk',
               ),
             ),
           ),

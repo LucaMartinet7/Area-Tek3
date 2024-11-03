@@ -30,9 +30,7 @@ class ActionReactionPage extends StatelessWidget {
   }
 
   bool _isColorTooLight(Color color) {
-    // Calculate the luminance of the color
     double luminance = (0.299 * color.red + 0.587 * color.green + 0.114 * color.blue) / 255;
-    // Return true if the color is too light
     return luminance > 0.7;
   }
 

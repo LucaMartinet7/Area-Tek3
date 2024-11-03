@@ -22,7 +22,7 @@ class MicrosoftPage extends StatelessWidget {
       );
     } else {
       return MobileActionReactionPage(
-        title: 'Microsoft',
+        title: 'microsoft',
         area: list,
       );
     }

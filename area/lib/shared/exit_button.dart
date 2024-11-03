@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:area/shared/api_service.dart';
+import '../shared/api_service.dart';
 
 Widget buildExitButton(BuildContext context) {
   return IconButton(

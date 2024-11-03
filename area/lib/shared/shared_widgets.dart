@@ -1,4 +1,4 @@
-import 'package:area/shared/api_service.dart';
+import '../shared/api_service.dart';
 import 'package:flutter/material.dart';
 
 const double containerPadding = 25.0;
@@ -107,7 +107,7 @@ class LoginButton extends StatelessWidget {
       style: blackButtonStyle,
       child: const Text(
         "Login",
-        style: TextStyle(color: Colors.white, fontSize: 16),
+        style: TextStyle(color: Colors.white, fontSize: 16, fontFamily: 'ClashGrotesk',),
       ),
     );
   }

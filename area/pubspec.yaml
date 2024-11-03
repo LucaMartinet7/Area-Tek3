@@ -1,5 +1,5 @@
-name: area
-description: "A new Flutter project."
+name: nell
+description: "The Nell Dashboard"
 publish_to: 'none'
 version: 0.1.0
 
@@ -29,12 +29,5 @@ flutter:
       fonts:
         - asset: assets/fonts/ClashGrotesk-Variable.ttf
   assets:
-    - assets/images/illustration-1.png
-    - assets/images/illustration-2.png
-    - assets/images/google.png
-    - assets/images/github.png
-    - assets/images/facebook.png
-    - assets/images/spotify.png
-    - assets/images/twitch.png
-    - assets/images/microsoft.png
+    - assets/images/
     - assets/vectors/

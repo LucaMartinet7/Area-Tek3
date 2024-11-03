@@ -49,7 +49,7 @@ class ActionReactionRectangleState extends State<ActionReactionRectangle> {
                     textAlign: TextAlign.center,
                     overflow: TextOverflow.ellipsis,
                     maxLines: 2,
-                    style: const TextStyle(fontSize: 20, color: Colors.white),
+                    style: const TextStyle(fontSize: 20, color: Colors.white, fontFamily: 'ClashGrotesk'),
                   ),
                 ),
                 Padding(
@@ -59,7 +59,7 @@ class ActionReactionRectangleState extends State<ActionReactionRectangle> {
                     textAlign: TextAlign.center,
                     overflow: TextOverflow.ellipsis,
                     maxLines: 2,
-                    style: const TextStyle(fontSize: 16, color: Colors.white70),
+                    style: const TextStyle(fontSize: 16, color: Colors.white70, fontFamily: 'ClashGrotesk'),
                   ),
                 ),
                 Switch(

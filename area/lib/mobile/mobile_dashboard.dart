@@ -4,12 +4,12 @@ import '../shared/service_name_box.dart';
 import 'mobile_nav_bar.dart';
 
 class Service {
-  final String name;
   final String logoPath;
   final bool isConnected;
   final String route;
+  final List<Color> colors;
 
-  Service(this.name, this.logoPath, this.isConnected, this.route);
+  Service(this.logoPath, this.isConnected, this.route, this.colors);
 }
 
 class MobileDashboard extends StatelessWidget {
@@ -18,11 +18,11 @@ class MobileDashboard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final services = [
-      Service('Spotify', 'assets/images/spotify.png', true, '/spotify'),
-      Service('Twitch', 'assets/images/twitch.png', false, '/twitch'),
-      Service('Google', 'assets/images/google.png', true, '/google'),
-      Service('Youtube', 'assets/vectors/youtube.png', false, '/youtube'),
-      Service('Microsoft', 'assets/images/microsoft.png', true, '/microsoft'),
+      Service('assets/vectors/spotify.png', true, '/spotify', [const Color(0xFF1DB954)]),
+      Service('assets/vectors/twitch.png', false, '/twitch', [const Color(0xFF9146FF)]),
+      Service('assets/vectors/google.png', true, '/google', [Colors.blue, Colors.red, Colors.yellow, Colors.green]),
+      Service('assets/vectors/youtube.png', true, '/youtube', [const Color(0xFFFF0000)]),
+      Service('assets/vectors/microsoft.png', false, '/microsoft', [Colors.blue, Colors.green, Colors.yellow, Colors.red]),
     ];
 
     void handleConnect(BuildContext context, String route) {
@@ -36,29 +36,41 @@ class MobileDashboard extends StatelessWidget {
       appBar: AppBar(
         automaticallyImplyLeading: false,
       ),
+      
       body: Center(
         child: SingleChildScrollView(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
-            children: services.map((service) {
+            children: [
+              const SizedBox(height: 15),
+              const Text(
+                'Available APIs',
+                style: TextStyle(
+                  fontFamily: 'ClashGrotesk',
+                  fontSize: 30,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 20),
+            ...services.map((service) {
               return Center(
                 child: Card(
-                  margin: const EdgeInsets.symmetric(vertical: 30.0), // Adjusted vertical margin
+                  margin: const EdgeInsets.symmetric(vertical: 30.0),
                   child: Container(
                     constraints: const BoxConstraints(
-                      maxWidth: 400,
-                      maxHeight: 80, // Set a maximum height for the buttons
+                      maxWidth: 350,
+                      maxHeight: 70,
                     ),
                     child: ServiceNameBox(
                       logoPath: service.logoPath,
-                      serviceName: service.name,
-                      onConnect: () => handleConnect(context, service.route),
-                      borderColor: service.isConnected ? Colors.green : Colors.red, // Set border color based on connection status
+                      onConnect: service.isConnected ? () => handleConnect(context, service.route) : () {},
+                      backgroundColors: service.isConnected ? service.colors : [Colors.grey],
                     ),
                   ),
                 ),
               );
-            }).toList(),
+            }),
+            ],
           ),
         ),
       ),

@@ -3,7 +3,7 @@ import 'shared/login_form.dart';
 import 'shared/register_form.dart';
 import 'shared/dashboard_page.dart';
 import 'settings_page.dart';
-import 'about_page.dart';
+import 'shared/about_page.dart';
 import 'shared/spotify_area.dart';
 import 'shared/twitch_area.dart';
 import 'shared/google_area.dart';
@@ -34,7 +34,7 @@ class MyApp extends StatelessWidget {
           } else if (snapshot.hasData && snapshot.data == true) {
             return const DashboardPage();
           } else {
-            return const LoginPage();
+            return const AboutPage();
           }
         },
       ),
@@ -48,7 +48,7 @@ class MyApp extends StatelessWidget {
         '/google': (context) => RouteGuard(child: const GooglePage()),
         '/youtube': (context) => RouteGuard(child: const YoutubePage()),
         '/microsoft': (context) => RouteGuard(child: const MicrosoftPage()),
-        '/about': (context) => RouteGuard(child: const AboutPage()),
+        '/about': (context) => const AboutPage(),
         '/account': (context) => RouteGuard(child: const MobileAccount()),
       },
     );
