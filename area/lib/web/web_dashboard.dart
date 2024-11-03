@@ -1,5 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
+import 'package:http/http.dart' as http;
 import '../shared/service_box.dart';
 import 'web_nav_bar.dart';
 import '../shared/user_service.dart';
@@ -7,29 +9,52 @@ import '../shared/user_service.dart';
 class Service {
   final String name;
   final String logoPath;
-  final bool isConnected;
+  bool isConnected;
+  final String loginUrl;
 
-  Service(this.name, this.logoPath, this.isConnected, );
+  Service(this.name, this.logoPath, this.isConnected, this.loginUrl);
 }
 
-class WebDashboard extends StatelessWidget {
+class WebDashboard extends StatefulWidget {
   const WebDashboard({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    final services = [
-      Service('Spotify', 'assets/images/spotify.png', false),
-      Service('Twitch', 'assets/images/twitch.png', true),
-      Service('Google', 'assets/images/google.png', false),
-      Service('Microsoft', 'assets/images/microsoft.png', true),
-    ];
+  WebDashboardState createState() => WebDashboardState();
+}
 
-    void handleConnect(String serviceName) {
-      if (kDebugMode) {
-        print('Connecting to $serviceName');
-      }
+class WebDashboardState extends State<WebDashboard> {
+  final List<Service> services = [
+    Service('Spotify', 'assets/images/spotify.png', false, 'http://127.0.0.1:8000/api/auth/spotify/login/'),
+    Service('Twitch', 'assets/images/twitch.png', false, 'http://127.0.0.1:8000/api/auth/twitch/login/'),
+    Service('Google', 'assets/images/google.png', false, 'http://127.0.0.1:8000/api/auth/google/login/'),
+  ];
+
+  void handleConnect(String serviceName, String loginUrl) async {
+    if (kDebugMode) {
+      print('Connecting to $serviceName');
     }
+    final Uri loginUri = Uri.parse(loginUrl);
+    if (await canLaunchUrl(loginUri)) {
+      await launchUrl(loginUri);
+      // Await server response for 200 status code
+      final response = await http.get(loginUri);
+      if (response.statusCode == 302 || response.statusCode == 200) {
+        if (kDebugMode) {
+          print('Successfully connected to $serviceName');
+        }
+        setState(() {
+          services.firstWhere((service) => service.name == serviceName).isConnected = true;
+        });
+      } else {
+        throw 'Failed to connect to $serviceName: ${response.statusCode}';
+      }
+    } else {
+      throw 'Could not launch $loginUrl';
+    }
+  }
 
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
       appBar: const WebNavBar(),
       body: Center(
@@ -134,7 +159,7 @@ class WebDashboard extends StatelessWidget {
     );
   }
 
-  Widget _buildServiceBoxes(List<Service> services, void Function(String) handleConnect) {
+  Widget _buildServiceBoxes(List<Service> services, void Function(String, String) handleConnect) {
     return Expanded(
       flex: 1,
       child: Column(
@@ -143,7 +168,7 @@ class WebDashboard extends StatelessWidget {
             .map((service) => ServiceBox(
                   logoPath: service.logoPath,
                   isConnected: service.isConnected,
-                  onConnect: () => handleConnect(service.name),
+                  onConnect: () => handleConnect(service.name, service.loginUrl),
                   serviceName: service.name,
                 ))
             .toList(),
