@@ -118,7 +118,7 @@ class WebAboutPage extends StatelessWidget {
             ),
           ),
           const SizedBox(width: 32),
-          Flexible(
+          Expanded(
             child: Image.asset(
               'assets/images/logo_black.png',
               width: _imageSize,
@@ -177,48 +177,47 @@ class WebAboutPage extends StatelessWidget {
   }
 
   Widget _buildButtons(BuildContext context) {
-    return Flexible(
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.start,
-        children: [
-          Flexible(
-            child: ElevatedButton(
-              onPressed: () {
-                Navigator.pushNamed(context, '/register');
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color.fromARGB(255, 140, 211, 255),
-                padding: const EdgeInsets.symmetric(horizontal: 40, vertical: _buttonPadding),
-                textStyle: _buildTextStyle(Colors.white, size: 20),
-                foregroundColor: Colors.black,
-              ),
-              child: const Text("Register"),
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.start,
+      children: [
+        Expanded(
+          child: ElevatedButton(
+            onPressed: () {
+              Navigator.pushNamed(context, '/register');
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color.fromARGB(255, 140, 211, 255),
+              padding: const EdgeInsets.symmetric(horizontal: 30, vertical: _buttonPadding),
+              textStyle: _buildTextStyle(Colors.white, size: 20),
+              foregroundColor: Colors.black,
             ),
+            child: const Text("Register"),
           ),
-          const SizedBox(width: 16),
-          Text(
-            "or",
-            style: _buildTextStyle(Colors.black, size: 24, fontWeight: FontWeight.normal),
-          ),
-          const SizedBox(width: 16),
-          Flexible(
-            child: ElevatedButton(
-              onPressed: () {
-                Navigator.pushNamed(context, '/login');
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color.fromARGB(255, 140, 211, 255),
-                padding: const EdgeInsets.symmetric(horizontal: 40, vertical: _buttonPadding),
-                textStyle: _buildTextStyle(Colors.white, size: 20),
-                foregroundColor: Colors.black,
-              ),
-              child: const Text("Login"),
+        ),
+        const SizedBox(width: 16),
+        Text(
+          "or",
+          style: _buildTextStyle(Colors.black, size: 24, fontWeight: FontWeight.normal),
+        ),
+        const SizedBox(width: 16),
+        Expanded(
+          child: ElevatedButton(
+            onPressed: () {
+              Navigator.pushNamed(context, '/login');
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color.fromARGB(255, 140, 211, 255),
+              padding: const EdgeInsets.symmetric(horizontal: 40, vertical: _buttonPadding),
+              textStyle: _buildTextStyle(Colors.white, size: 20),
+              foregroundColor: Colors.black,
             ),
+            child: const Text("Login"),
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
+
 
   Widget _buildDownloadSection() {
     return LayoutBuilder(
