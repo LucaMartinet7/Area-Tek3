@@ -69,6 +69,8 @@ class MobileRegisterState extends State<MobileRegister> {
                       emailController: _emailController,
                       passwordController: _passwordController,
                     ),
+                    const SizedBox(height: 20),
+                    const LoginLink(),
                   ],
                 ),
               ),

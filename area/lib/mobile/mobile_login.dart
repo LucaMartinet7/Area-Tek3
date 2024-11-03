@@ -68,6 +68,8 @@ class MobileLoginState extends State<MobileLogin> {
                         nameController: _nameController,
                         passwordController: _passwordController,
                       ),
+                      const SizedBox(height: 20),
+                      const RegisterLink(),
                     ],
                   ),
                 ),
