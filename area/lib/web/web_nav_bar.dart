@@ -6,7 +6,6 @@ class WebNavBar extends StatelessWidget implements PreferredSizeWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Example connection status for each service
     final services = [
       {'asset': 'assets/vectors/account.png', 'route': '/dashboard', 'isConnected': true},
       {'asset': 'assets/vectors/spotify.png', 'route': '/spotify', 'isConnected': false},
@@ -17,6 +16,7 @@ class WebNavBar extends StatelessWidget implements PreferredSizeWidget {
     ];
 
     final connectedServices = services.where((service) => service['isConnected'] as bool).toList();
+    final currentRoute = ModalRoute.of(context)?.settings.name;
 
     return Container(
       decoration: BoxDecoration(
@@ -40,18 +40,19 @@ class WebNavBar extends StatelessWidget implements PreferredSizeWidget {
                     service['asset'] as String,
                     service['route'] as String,
                     service['isConnected'] as bool,
+                    currentRoute == service['route'],
                   );
                 }).toList(),
               ),
             ),
-            _buildNavButton(context, 'assets/vectors/info.png', '/about', true),
+            _buildNavButton(context, 'assets/vectors/info.png', '/about', true, currentRoute == '/about'),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildNavButton(BuildContext context, String assetPath, String route, bool isConnected) {
+  Widget _buildNavButton(BuildContext context, String assetPath, String route, bool isConnected, bool isCurrentPage) {
     return IconButton(
       onPressed: isConnected && ModalRoute.of(context)?.settings.name != route
           ? () => Navigator.pushNamed(context, route)
@@ -60,7 +61,11 @@ class WebNavBar extends StatelessWidget implements PreferredSizeWidget {
         assetPath,
         width: 32,
         height: 32,
-        color: isConnected ? const Color.fromARGB(255, 140, 211, 255) : Colors.grey,
+        color: isCurrentPage
+            ? Colors.blue
+            : isConnected
+                ? const Color.fromARGB(255, 140, 211, 255)
+                : Colors.grey,
       ),
     );
   }
