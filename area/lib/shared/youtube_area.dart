@@ -8,8 +8,9 @@ class YoutubePage extends StatelessWidget {
   const YoutubePage({super.key});
 
   static const List<Tuple3<String, String, String>> list = [
-    Tuple3('Test Action', 'Test Reaction', ' ' ),
-    Tuple3('Test Action', 'Test Reaction', ' ')
+    Tuple3('Follow a youtube channel', 'Post on Bluesky', '/googlies/area-check-youtube-bluesky/' ),
+    Tuple3('Follow a youtube channel', 'Play music on Spotify', '/googlies/area-check-youtube-spotify/'),
+    Tuple3('Follow a youtube channel', 'Send a message in twitch chat', '/googlies/area-check-youtube-twitch/')
   ];
 
   @override

@@ -26,6 +26,8 @@ class WebDashboardState extends State<WebDashboard> {
     Service('Spotify', 'assets/images/spotify.png', false, 'http://127.0.0.1:8000/api/auth/spotify/login/'),
     Service('Twitch', 'assets/images/twitch.png', false, 'http://127.0.0.1:8000/api/auth/twitch/login/'),
     Service('Google', 'assets/images/google.png', false, 'http://127.0.0.1:8000/api/auth/google/login/'),
+    Service('YouTube', 'assets/images/youtube.png', false, 'http://127.0.0.1:8000/api/auth/google/login/'),
+    Service('Bluesky', 'assets/images/bluesky.png', false, 'http://localhost:3000/bluesky/login'),
   ];
 
   @override

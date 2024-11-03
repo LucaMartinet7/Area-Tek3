@@ -4,25 +4,24 @@ import 'package:flutter/foundation.dart';
 import '../web/area_page.dart';
 import '../mobile/mobile_area.dart';
 
-class GooglePage extends StatelessWidget {
-  const GooglePage({super.key});
+class BlueSkyPage extends StatelessWidget {
+  const BlueSkyPage({super.key});
 
   static const List<Tuple3<String, String, String>> list = [
-    Tuple3('Send an email', 'Post on Bluesky', 'http://127.0.0.1:8000/googlies/area-check-gmail-bluesky/'),
-    Tuple3('Send an email', 'Play music on Spotify', 'http://127.0.0.1:8000/googlies/area-check-gmail-spotify/'),
-    Tuple3('Send an email', 'Type in twitch channel', 'http://127.0.0.1:8000/googlies/area-check-gmail-twitch/')
+    Tuple3('When You Post', 'play a song on spotify', 'http://127.0.0.1:8000/api/googlies/area-check-bluesky-spotify/'),
+    Tuple3('When You Post', 'Send Message in your Twitch Chat', 'http://127.0.0.1:8000/api/googlies/area-check-bluesky-twitch/'),
   ];
 
   @override
   Widget build(BuildContext context) {
     if (kIsWeb) {
       return ActionReactionPage(
-        title: 'Google',
+        title: 'BlueSky',
         area: list,
       );
     } else {
       return MobileActionReactionPage(
-        title: 'google',
+        title: 'BlueSky',
         area: list,
       );
     }

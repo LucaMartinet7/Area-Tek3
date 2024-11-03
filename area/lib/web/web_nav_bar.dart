@@ -9,6 +9,7 @@ const List<Map<String, String>> services = [
   {'asset': 'assets/vectors/google.png', 'route': '/google', 'name': 'Google'},
   {'asset': 'assets/vectors/youtube.png', 'route': '/youtube', 'name': 'YouTube'},
   {'asset': 'assets/vectors/microsoft.png', 'route': '/microsoft', 'name': 'Microsoft'},
+  {'asset': 'assets/images/bluesky.png', 'route': '/bluesky', 'name': 'Bluesky'},
 ];
 
 class WebNavBar extends StatelessWidget implements PreferredSizeWidget {

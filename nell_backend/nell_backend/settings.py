@@ -217,6 +217,7 @@ CSRF_TRUSTED_ORIGINS = [
 ]
 
 CORS_ALLOW_HEADERS = [
+    '/register',
     '/login',
     '/accounts/login/',
     'content-type',
