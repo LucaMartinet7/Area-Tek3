@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:nell/web/route_guard.dart';
 import 'shared/login_form.dart';
 import 'shared/register_form.dart';
 import 'shared/dashboard_page.dart';
@@ -40,15 +41,15 @@ class MyApp extends StatelessWidget {
       routes: {
         '/login': (context) => const LoginPage(),
         '/register': (context) => const RegisterPage(),
-        '/dashboard': (context) => const DashboardPage(),
-        '/spotify': (context) => const SpotifyPage(),
-        '/twitch': (context) => const TwitchPage(),
-        '/google': (context) => const GooglePage(),
-        '/youtube': (context) => const YoutubePage(),
         '/about': (context) => const AboutPage(),
-        '/account': (context) => const MobileAccount(),
-        '/bluesky': (context) => const BlueSkyPage(),
-        '/bluesky/login': (context) => const BlueSkyLoginPage(),
+        '/dashboard': (context) => RouteGuard(child: const DashboardPage()),
+        '/spotify': (context) => RouteGuard(child: const SpotifyPage()),
+        '/twitch': (context) => RouteGuard(child: const TwitchPage()),
+        '/google': (context) => RouteGuard(child: const GooglePage()),
+        '/youtube': (context) => RouteGuard(child: const YoutubePage()),
+        '/account': (context) => RouteGuard(child: const MobileAccount()),
+        '/bluesky': (context) => RouteGuard(child: const BlueSkyPage()),
+        '/bluesky/login': (context) => RouteGuard(child: const BlueSkyLoginPage()),
       },
     );
   }

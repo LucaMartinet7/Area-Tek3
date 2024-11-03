@@ -21,7 +21,7 @@ class UserProfile {
 
 Future<UserProfile> fetchUserProfile(String username) async {
   final response = await http.get(
-    Uri.parse(await getApiUrl('auth/auth/user-info/$username/')),
+    Uri.parse(await getApiUrl('api/auth/auth/user-info/$username/')),
   );
   if (response.statusCode == 200) {
     return UserProfile.fromJson(json.decode(response.body));
