@@ -3,14 +3,11 @@ from django.contrib.auth.models import User
 
 class TwitchLiveAction(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    channel_name = models.CharField(max_length=255)
-    twitch_user_id = models.CharField(max_length=255, blank=True, null=True)
-    access_token = models.CharField(max_length=255, blank=True, null=True)
-    client_id = models.CharField(max_length=255, blank=True, null=True)
+    channel_status = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"{self.user.username} - Twitch Channel Live: {self.channel_name}"
+        return f"{self.user.username} - Twitch Channel Live: {self.channel_status}"
 
 class BlueskyPostReaction(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)

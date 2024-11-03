@@ -4,46 +4,76 @@ import random
 from django.utils import timezone
 from atproto import Client
 from .models import *
+from authentication.models import SocialUser
+from django.conf import settings
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-def check_twitch_live():
-    actions = TwitchLiveAction.objects.all()
-    for action in actions:
-        logger.info(f"Checking Twitch live status for channel: {action.channel_name}")
-        response = requests.get(
-            f'https://api.twitch.tv/helix/streams?user_login={action.channel_name}',
-            headers={
-                'Client-ID': action.client_id,
-                'Authorization': f'Bearer {action.access_token}'
-            }
-        )
-        data = response.json()
-        logger.info(f"Twitch API response for {action.channel_name}: {data}")
+def check_twitch_live(user):
+    # Retrieve all social users for the logged-in user
+    social_users = SocialUser.objects.filter(user=user)
+    social_user = None
 
-        if data.get('data'):
-            logger.info(f"Channel {action.channel_name} is live. Preparing to post to Bluesky.")
-            reaction = BlueskyPostReaction.objects.filter(user=action.user).first()
-            if reaction:
-                logger.info(f"Bluesky Reaction found for user {reaction.user}. Message: {reaction.message}")
-                post_to_bluesky(reaction)
+    # Find the social user with provider 'twitch'
+    for su in social_users:
+        if su.provider == 'twitch':
+            social_user = su
+            break
+
+    # Check if a Twitch social user was found
+    if not social_user:
+        logger.error(f"No SocialUser with provider 'twitch' found for user {user.username}")
+        return
+
+    # Proceed to check live status if Twitch social user exists
+    logger.info(f"Checking Twitch live status for channel: {social_user.provider_username}")
+
+    response = requests.get(
+        f'https://api.twitch.tv/helix/streams?user_login={social_user.provider_username}',
+        headers={
+            'Client-ID': settings.TWITCH_CLIENT_ID,
+            'Authorization': f'Bearer {social_user.access_token}'
+        }
+    )
+    data = response.json()
+    logger.info(f"Twitch API response for {social_user.provider_username}: {data}")
+
+    if data.get('data'):
+        logger.info(f"Channel {social_user.provider_username} is live.")
+        return True
+    else:
+        logger.info(f"Channel {social_user.provider_username} is not live.")
+        return False
 
 def post_to_bluesky(reaction):
     client = Client()
     try:
-        if reaction.bluesky_access_token:
-            client.login_with_session(reaction.bluesky_access_token)
-        elif reaction.bluesky_password:
+        # Print debug information for each variable from the reaction instance
+        print("Debug Info:")
+        print(f"User ID: {reaction.bluesky_user_id}")
+        print(f"Handle: {reaction.bluesky_handle}")
+        print(f"Password: {reaction.bluesky_password}")
+        print(f"Message: {reaction.message}")
+
+        # Attempt to log in using handle and password if available
+        if reaction.bluesky_handle and reaction.bluesky_password:
+            print("Attempting to log in with handle and password...")
             client.login(reaction.bluesky_handle, reaction.bluesky_password)
         else:
             logger.error(f"Missing credentials for Bluesky login for user {reaction.user}")
             return
 
+        # Post the message to Bluesky
+        print("Attempting to post message to Bluesky...")
         post = client.send_post(reaction.message)
         logger.info(f"Posted to Bluesky: {post.uri}")
-    except ValueError as e:
-        logger.error(f"Failed to login to Bluesky: {e}")
+    except AttributeError as e:
+        logger.error(f"Login method missing or incorrect in Client class: {e}")
+        print(f"Error: Login method missing or incorrect in Client class: {e}")
+    except Exception as e:
+        logger.error(f"Failed to post to Bluesky: {e}")
+        print(f"Error: Failed to post to Bluesky: {e}")
 
 def check_twitch_new_follower():
     actions = TwitchFollowerAction.objects.all()
