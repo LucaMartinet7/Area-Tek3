@@ -1,22 +1,25 @@
 from rest_framework import serializers
-from .models import *
+from .models import YouTubeWatchAction, GoogleCalendarEventReaction, GoogleCalendarCreateAction, YouTubeVideoReaction
 
-class YouTubeActionSerializer(serializers.ModelSerializer):
+class YouTubeWatchActionSerializer(serializers.ModelSerializer):
     class Meta:
-        model = YouTubeAction
+        model = YouTubeWatchAction
         fields = '__all__'
 
-class SpotifyPlaylistReactionSerializer(serializers.ModelSerializer):
+
+class GoogleCalendarEventReactionSerializer(serializers.ModelSerializer):
     class Meta:
-        model = SpotifyPlaylistReaction
+        model = GoogleCalendarEventReaction
         fields = '__all__'
 
-class YouTubeSubscriptionActionSerializer(serializers.ModelSerializer):
+
+class GoogleCalendarCreateActionSerializer(serializers.ModelSerializer):
     class Meta:
-        model = YouTubeSubscriptionAction
+        model = GoogleCalendarCreateAction
         fields = '__all__'
 
-class OutlookEmailReactionSerializer(serializers.ModelSerializer):
+
+class YouTubeVideoReactionSerializer(serializers.ModelSerializer):
     class Meta:
-        model = OutlookEmailReaction
+        model = YouTubeVideoReaction
         fields = '__all__'

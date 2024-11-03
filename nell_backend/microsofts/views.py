@@ -1,49 +1,59 @@
-import requests
-import msal
-from django.core.mail import send_mail
-from django.conf import settings
-from django.shortcuts import redirect, render
-from django.http import JsonResponse
 from rest_framework import viewsets, permissions, status
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from .models import *
-from .serializers import *
-from .tasks import *
+from django.contrib.auth.models import AnonymousUser
+from .models import CalendarEventReaction, GoogleDriveFileReaction, OutlookEmailAction, GoogleChatMessageReaction
+from .serializers import CalendarEventReactionSerializer, GoogleDriveFileReactionSerializer, OutlookEmailActionSerializer, GoogleChatMessageReactionSerializer
+from .tasks import check_onedrive_for_new_file
+
 
 class CalendarEventReactionViewSet(viewsets.ModelViewSet):
     queryset = CalendarEventReaction.objects.all()
     serializer_class = CalendarEventReactionSerializer
-    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        if isinstance(self.request.user, AnonymousUser):
+            return CalendarEventReaction.objects.none()
+        return self.queryset.filter(user=self.request.user)
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
 
 class TriggerOneDriveToGoogleDriveSync(APIView):
-    def post(self, request):
-        user_id = request.user.id
-        access_token = request.data.get('access_token')
+    permission_classes = [permissions.IsAuthenticated]
 
-        check_onedrive_for_new_file(user_id, access_token)
+    def post(self, request):
+        access_token = request.data.get('access_token')
+        check_onedrive_for_new_file(request.user.id, access_token)
         return Response({"message": "OneDrive to Google Drive sync triggered."}, status=status.HTTP_200_OK)
+
 
 class GoogleDriveFileReactionViewSet(viewsets.ModelViewSet):
     queryset = GoogleDriveFileReaction.objects.all()
     serializer_class = GoogleDriveFileReactionSerializer
-    permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
+        if isinstance(self.request.user, AnonymousUser):
+            return GoogleDriveFileReaction.objects.none()
         return self.queryset.filter(user=self.request.user)
+
 
 class OutlookEmailActionViewSet(viewsets.ModelViewSet):
     queryset = OutlookEmailAction.objects.all()
     serializer_class = OutlookEmailActionSerializer
-    permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
+        if isinstance(self.request.user, AnonymousUser):
+            return OutlookEmailAction.objects.none()
         return self.queryset.filter(user=self.request.user)
+
 
 class GoogleChatMessageReactionViewSet(viewsets.ModelViewSet):
     queryset = GoogleChatMessageReaction.objects.all()
     serializer_class = GoogleChatMessageReactionSerializer
-    permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
+        if isinstance(self.request.user, AnonymousUser):
+            return GoogleChatMessageReaction.objects.none()
         return self.queryset.filter(user=self.request.user)
