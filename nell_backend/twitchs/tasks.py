@@ -6,6 +6,8 @@ from atproto import Client
 from .models import *
 from authentication.models import SocialUser
 from django.conf import settings
+from django.contrib.auth.models import User
+from googlies.models import *
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -75,53 +77,62 @@ def post_to_bluesky(reaction):
         logger.error(f"Failed to post to Bluesky: {e}")
         print(f"Error: Failed to post to Bluesky: {e}")
 
-def check_twitch_new_follower():
-    actions = TwitchFollowerAction.objects.all()
-    for action in actions:
-        logger.info(f"Checking new followers for Twitch user ID: {action.twitch_user_id}")
-        
-        response = requests.get(
-            f'https://api.twitch.tv/helix/users/follows?to_id={action.twitch_user_id}',
-            headers={
-                'Client-ID': action.client_id,
-                'Authorization': f'Bearer {action.access_token}'
-            }
-        )
-        data = response.json()
-        logger.info(f"Twitch API response for user {action.twitch_user_id}: {data}")
+def get_social_user_by_provider(user, provider):
+    print(f"Attempting to retrieve SocialUser with provider '{provider}' for user: {user.username}")
+    try:
+        social_user = SocialUser.objects.get(user=user, provider=provider)
+        print(f"Retrieved SocialUser: {social_user}")
+        print(f"SocialUser provider: {social_user.provider}, username: {social_user.provider_username}, access token: {social_user.access_token}")
+        return social_user
+    except SocialUser.DoesNotExist:
+        logger.error(f"No SocialUser with provider '{provider}' found for user {user.username}")
+        return None
 
-        if 'total' in data and data['total'] > action.last_follower_count:
-            logger.info("New follower detected. Triggering Spotify reaction.")
-            reaction = SpotifyPlaylistAddSongReaction.objects.filter(user=action.user).first()
-            if reaction:
-                add_song_to_spotify_playlist(reaction)
+def run_spotify_reaction(user):
+    """Plays the specified song on Spotify for the user."""
+    print(f"Attempting to play Spotify song for user {user.username}")
+    spotify_reaction = SpotifySongReaction.objects.filter(user=user).first()
+    print(f"Spotify reaction found: {spotify_reaction}")
 
-            # Update last follower count
-            action.last_follower_count = data['total']
-            action.last_checked = timezone.now()
-            action.save()
+    if not spotify_reaction:
+        logger.error(f"No Spotify song reaction found for user {user.username}")
+        return
 
-def add_song_to_spotify_playlist(reaction):
-    sample_tracks = [ #random tracks
-        'spotify:track:4uLU6hMCjMI75M1A2tKUQC',
-        'spotify:track:0VjIjW4GlUZAMYd2vXMi3b',
-        'spotify:track:1lDWb6b6ieDQ2xT7ewTC3G'
-    ]
-    random_track_uri = random.choice(sample_tracks)
+    social_users = SocialUser.objects.filter(user=user)
+    social_user = None
+    for su in social_users:
+        if su.provider == 'spotify':
+            social_user = su
+            break
+
+    if not social_user:
+        logger.error(f"No SocialUser with provider 'spotify' found for user {user.username}")
+        return
+
+    print("Preparing Spotify request payload")
+    print(f"provider: {social_user.provider}")
+    print(f"scope: {settings.OAUTH_SCOPES['spotify']}")  # Print the actual using scope for this service
+    headers = {
+        "Authorization": f"Bearer {social_user.access_token}",
+        "Content-Type": "application/json"
+    }
+    payload = {
+        "uris": [spotify_reaction.song_uri]
+    }
+    print(f"Spotify headers: {headers}")
+    print(f"Spotify payload: {payload}")
 
     try:
-        response = requests.post(
-            f'https://api.spotify.com/v1/playlists/{reaction.spotify_playlist_id}/tracks',
-            headers={
-                'Authorization': f'Bearer {reaction.spotify_access_token}',
-                'Content-Type': 'application/json'
-            },
-            json={'uris': [random_track_uri]}
-        )
-        if response.status_code == 201:
-            logger.info(f"Successfully added track to Spotify playlist {reaction.spotify_playlist_id}")
-        else:
-            logger.error(f"Failed to add track to Spotify playlist. Response: {response.json()}")
+        print("Sending request to Spotify API to play song")
+        response = requests.put("https://api.spotify.com/v1/me/player/play", headers=headers, json=payload)
+        print(f"Spotify response status: {response.status_code}")
+        print(f"Spotify response text: {response.text}")
 
+        if response.status_code == 204:
+            logger.info(f"Playing song {spotify_reaction.song_uri} on Spotify for user {user.username}")
+            return 0
+        else:
+            logger.error(f"Failed to play song on Spotify: {response.text}")
+            return 1
     except Exception as e:
-        logger.error(f"An error occurred while adding track to Spotify playlist: {e}")
+        logger.error(f"Error playing song on Spotify for user {user.username}: {e}")
