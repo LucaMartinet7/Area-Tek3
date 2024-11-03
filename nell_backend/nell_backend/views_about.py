@@ -104,6 +104,69 @@ def about_view(request):
                             "description": "Check Gmail for new messages and trigger a Bluesky post"
                         }
                     ]
+                },
+                {
+                    "name": "area-check",
+                    "actions": [
+                        {
+                            "name": "area_check_bluesky_spotify",
+                            "description": "Look for a Bluesky post and play music on Spotify"
+                        },
+                        {
+                            "name": "area_check_bluesky_twitch",
+                            "description": "Look for a Bluesky post and post a message on Twitch channel"
+                        },
+                        {
+                            "name": "area_check_gmail_bluesky",
+                            "description": "Look for an email and make a post on Bluesky"
+                        },
+                        {
+                            "name": "area_check_gmail_spotify",
+                            "description": "Look for an email and play music on Spotify"
+                        },
+                        {
+                            "name": "area_check_gmail_twitch",
+                            "description": "Look for an email and post a message on Twitch channel"
+                        },
+                        {
+                            "name": "area_check_spotify_bluesky",
+                            "description": "Play music on Spotify and make a post on Bluesky"
+                        },
+                        {
+                            "name": "area_check_spotify_twitch",
+                            "description": "Play music on Spotify and send a message on Twitch"
+                        },
+                        {
+                            "name": "area_check_youtube_bluesky",
+                            "description": "Follow a YouTube channel and make a post on Bluesky"
+                        },
+                        {
+                            "name": "area_check_youtube_spotify",
+                            "description": "Follow a YouTube channel and play music on Spotify"
+                        },
+                        {
+                            "name": "area_check_youtube_twitch",
+                            "description": "Follow a YouTube channel and send a message on Twitch"
+                        }
+                    ],
+                    "reactions": [
+                        {
+                            "name": "twitchlive_spotify",
+                            "description": "Twitch channel goes live and plays music on Spotify"
+                        },
+                        {
+                            "name": "twitchlive_bluesky",
+                            "description": "Twitch channel goes live and posts on Bluesky"
+                        },
+                        {
+                            "name": "Bluesky_twitch",
+                            "description": "a Bluesky post and sends a message on Twitch"
+                        },
+                        {
+                            "name": "Bluesky_spotify",
+                            "description": "a Bluesky post and sends a message on Twitch"
+                        }
+                    ]
                 }
             ]
         }

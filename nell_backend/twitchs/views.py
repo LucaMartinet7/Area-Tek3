@@ -80,6 +80,36 @@ class CheckAndPostToBlueskyView(APIView):
         # Return the status message if the channel is not live
         return Response({"message": status_message}, status=status.HTTP_200_OK)
 
+class CheckAndPlaySpotifyView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request):
+        user = request.user
+        
+        # Step 1: Check if the Twitch channel is live
+        is_live = check_twitch_live(user)
+        if is_live is None:
+            return Response({"error": "No Twitch SocialUser found for the user."}, status=status.HTTP_404_NOT_FOUND)
+        
+        # Step 2: Update or create a TwitchLiveAction with the live status
+        twitch_live_action, created = TwitchLiveAction.objects.get_or_create(user=user)
+        twitch_live_action.channel_status = is_live
+        twitch_live_action.save()
+
+        # Prepare a message indicating the channel status
+        status_message = "Twitch is live; status updated successfully." if is_live else "Twitch is not live; status updated successfully."
+
+        # Step 3: If the channel is live, play a song on Spotify
+        if is_live:
+            result = run_spotify_reaction(user)
+            if result == 0:
+                return Response({"message": f"{status_message} Playing song on Spotify successfully."}, status=status.HTTP_200_OK)
+            else:
+                return Response({"error": f"{status_message} But failed to play song on Spotify."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
+        # Return the status message if the channel is not live
+        return Response({"message": status_message}, status=status.HTTP_200_OK)
+
 class TwitchLiveActionViewSet(viewsets.ModelViewSet):
     queryset = TwitchLiveAction.objects.all()
     serializer_class = TwitchLiveActionSerializer
@@ -147,47 +177,3 @@ class GetBlueskyUserIDView(APIView):
 
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-        
-class TwitchFollowerActionViewSet(viewsets.ModelViewSet):
-    queryset = TwitchFollowerAction.objects.all()
-    serializer_class = TwitchFollowerActionSerializer
-    permission_classes = [permissions.IsAuthenticated]
-
-    def get_queryset(self):
-        return self.queryset.filter(user=self.request.user)
-
-    def perform_create(self, serializer):
-        serializer.save(user=self.request.user)
-
-class SpotifyPlaylistAddSongReactionViewSet(viewsets.ModelViewSet):
-    queryset = SpotifyPlaylistAddSongReaction.objects.all()
-    serializer_class = SpotifyPlaylistAddSongReactionSerializer
-    permission_classes = [permissions.IsAuthenticated]
-
-    def get_queryset(self):
-        return self.queryset.filter(user=self.request.user)
-
-    def perform_create(self, serializer):
-        access_token = serializer.validated_data['spotify_access_token']
-
-        # Fetch user's first playlist ID from Spotify
-        response = requests.get(
-            'https://api.spotify.com/v1/me/playlists',
-            headers={'Authorization': f'Bearer {access_token}'}
-        )
-
-        if response.status_code == 200:
-            playlists = response.json().get('items', [])
-            if playlists:
-                first_playlist_id = playlists[0]['id']
-                
-                # Save the reaction with the user, playlist ID, and other validated data
-                serializer.save(
-                    user=self.request.user,
-                    spotify_playlist_id=first_playlist_id
-                )
-            else:
-                raise ValueError("No playlists found for this user.")
-        else:
-            raise ValueError("Failed to fetch Spotify playlists.")
-

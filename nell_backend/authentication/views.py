@@ -1,5 +1,5 @@
 import requests
-from urllib.parse import urlencode
+from urllib.parse import urlencode, quote
 from django.conf import settings
 from django.http import HttpResponseRedirect
 from django.contrib.auth import authenticate, login
@@ -41,7 +41,7 @@ PROVIDERS = {
         'auth_url': 'https://accounts.google.com/o/oauth2/auth',
         'token_url': 'https://oauth2.googleapis.com/token',
         'data_url': 'https://www.googleapis.com/oauth2/v1/userinfo',
-        'scope': 'https://www.googleapis.com/auth/userinfo.profile https://www.googleapis.com/auth/gmail.readonly',
+        'scope': 'https://www.googleapis.com/auth/userinfo.profile https://www.googleapis.com/auth/gmail.readonly https://www.googleapis.com/auth/youtube.readonly',
     },
     'reddit': {
         'client_id': settings.REDDIT_CLIENT_ID,
@@ -49,7 +49,7 @@ PROVIDERS = {
         'auth_url': 'https://www.reddit.com/api/v1/authorize',
         'token_url': 'https://www.reddit.com/api/v1/access_token',
         'data_url': 'https://oauth.reddit.com/api/v1/me',
-        'scope': 'identity',
+        'scope': 'identity submit',
     },
     'spotify': {
         'client_id': settings.SPOTIFY_CLIENT_ID,
@@ -131,7 +131,6 @@ class LoginView(APIView):
         print("Login validation errors:", serializer.errors)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-
 class OAuthInitView(APIView):
     @swagger_auto_schema(manual_parameters=[openapi.Parameter('provider', openapi.IN_PATH, description="OAuth provider", type=openapi.TYPE_STRING)])
     def get(self, request, provider):
@@ -140,47 +139,51 @@ class OAuthInitView(APIView):
 
         provider_config = PROVIDERS[provider]
         
-        # Use Twitch's specific redirect URI or default
+        # Use Twitch's specific redirect URI or the default for other providers
         redirect_uri = TWITCH_REDIRECT_URI if provider == 'twitch' else INTERNAL_REDIRECT_URI_TEMPLATE.format(provider=provider)
-        
-        # Encode parameters, including redirect_uri
+
+        # Set up parameters with 'permanent' duration for Reddit
         params = {
             'client_id': provider_config['client_id'],
             'redirect_uri': redirect_uri,
             'response_type': 'code',
-            'scope': provider_config['scope'],
+            'scope': provider_config['scope'],  # Leave scope as-is
         }
-        
-        # Properly build the auth URL
+
+        # Add 'duration' parameter only for Reddit
+        if provider == 'reddit':
+            params['duration'] = 'permanent'
+
+        # Build the authorization URL
         auth_url = f"{provider_config['auth_url']}?{urlencode(params)}"
         return HttpResponseRedirect(auth_url)
 
 class OAuthCallbackView(APIView):
     @swagger_auto_schema(manual_parameters=[openapi.Parameter('provider', openapi.IN_PATH, description="OAuth provider", type=openapi.TYPE_STRING)])
-    #@method_decorator(csrf_exempt, name='dispatch')
     def get(self, request, provider):
         user = request.user
-        print(f"User: {user}")
+        print(f"[DEBUG] User: {user}")
+
         if getattr(self, 'swagger_fake_view', False):
-            print("Swagger view detected.")
+            print("[DEBUG] Swagger view detected.")
             return Response({"message": "Schema generation in progress"}, status=status.HTTP_200_OK)
 
-        print(f"Provider received: {provider}")
+        print(f"[DEBUG] Provider received: {provider}")
         if provider not in PROVIDERS:
-            print(f"Unsupported provider: {provider}")
+            print(f"[DEBUG] Unsupported provider: {provider}")
             return Response({"error": "Unsupported provider"}, status=status.HTTP_400_BAD_REQUEST)
 
         code = request.GET.get('code')
-        print(f"Authorization code received: {code}")
+        print(f"[DEBUG] Authorization code received: {code}")
         if not code:
-            print("Authorization code not provided.")
+            print("[DEBUG] Authorization code not provided.")
             return Response({"error": "Authorization code not provided"}, status=status.HTTP_400_BAD_REQUEST)
 
         provider_config = PROVIDERS[provider]
-        print(f"Provider configuration: {provider_config}")
+        print(f"[DEBUG] Provider configuration: {provider_config}")
 
         redirect_uri = settings.TWITCH_REDIRECT_URI if provider == 'twitch' else INTERNAL_REDIRECT_URI_TEMPLATE.format(provider=provider)
-        print(f"Redirect URI: {redirect_uri}")
+        print(f"[DEBUG] Redirect URI: {redirect_uri}")
 
         token_data = {
             'client_id': provider_config['client_id'],
@@ -189,33 +192,33 @@ class OAuthCallbackView(APIView):
             'redirect_uri': redirect_uri,
             'grant_type': 'authorization_code',
         }
-        print(f"Token request data: {token_data}")
+        print(f"[DEBUG] Token request data: {token_data}")
 
         try:
             token_response = requests.post(provider_config['token_url'], data=token_data, headers={'Accept': 'application/json'})
             token_response.raise_for_status()
             response_data = token_response.json()
-            print("Token response data:", response_data)
+            print("[DEBUG] Token response data:", response_data)
             access_token = response_data.get('access_token')
-            print(f"Access token obtained: {access_token}")
+            print(f"[DEBUG] Access token obtained: {access_token}")
         except requests.exceptions.RequestException as e:
-            print(f"Error obtaining access token: {e}")
+            print(f"[DEBUG] Error obtaining access token: {e}")
             return Response({"error": f"Failed to obtain access token: {e}"}, status=status.HTTP_400_BAD_REQUEST)
 
         if not access_token:
-            print("Access token not provided by the provider.")
+            print("[DEBUG] Access token not provided by the provider.")
             return Response({"error": "Access token not provided by the provider"}, status=status.HTTP_400_BAD_REQUEST)
 
         headers = {'Authorization': f"Bearer {access_token}"}
         if provider == 'twitch':
             headers['Client-Id'] = provider_config['client_id']
-        print(f"Headers for data request: {headers}")
+        print(f"[DEBUG] Headers for data request: {headers}")
 
         try:
             data_response = requests.get(provider_config['data_url'], headers=headers)
             data_response.raise_for_status()
             user_data = data_response.json()
-            print("User data response:", user_data)
+            print("[DEBUG] User data response:", user_data)
 
             if provider == 'twitch':
                 provider_username = user_data.get('data', [{}])[0].get('login')
@@ -229,75 +232,72 @@ class OAuthCallbackView(APIView):
                 provider_username = user_data.get('display_name')
                 provider_id = user_data.get('id')
                 email = user_data.get('email', f"{provider_username}@example.com")
+            elif provider == 'reddit':
+                provider_username = user_data.get('name')
+                provider_id = user_data.get('id')
+                email = f"{provider_username}@reddit.com"
             else:
                 provider_username = user_data.get('login')
                 provider_id = user_data.get('id')
                 email = user_data.get('email', f"{provider_username}@example.com")
 
-            print(f"Provider username: {provider_username}")
-            print(f"Provider ID: {provider_id}")
-            print(f"Email: {email}")
+            print(f"[DEBUG] Provider username: {provider_username}")
+            print(f"[DEBUG] Provider ID: {provider_id}")
+            print(f"[DEBUG] Email: {email}")
 
             if not provider_username or not provider_id:
-                print("Required user data not provided by the provider.")
+                print("[DEBUG] Required user data not provided by the provider.")
                 return Response({"error": "Required user data not provided by the provider"}, status=status.HTTP_400_BAD_REQUEST)
 
         except requests.exceptions.RequestException as e:
-            print(f"Error obtaining user data: {e}")
+            print(f"[DEBUG] Error obtaining user data: {e}")
             return Response({"error": f"Failed to obtain user data: {e}"}, status=status.HTTP_400_BAD_REQUEST)
 
         username = provider_username or email.split('@')[0] or get_random_string(10)
-        print(f"Username: {username}")
+        print(f"[DEBUG] Username: {username}")
 
-        # If a user is authenticated, update or create the SocialUser for the logged-in user
+        # Save user info in the session before redirecting
+        request.session['user_info'] = {
+            "username": username,
+            "email": email,
+            "provider": provider
+        }
+
         if request.user.is_authenticated:
-            print("User is authenticated.")
+            print("[DEBUG] User is authenticated.")
             user = request.user
-            print(f"Authenticated user: {user}")
             social_user, created = SocialUser.objects.get_or_create(
                 user=user,
                 provider=provider,
                 provider_id=provider_id,
                 defaults={'access_token': access_token, 'provider_username': username}
             )
-            print(f"SocialUser created: {created}")
             if not created:
-                # Update the existing SocialUser with the new access_token and username if necessary
                 social_user.access_token = access_token
                 social_user.provider_username = username
                 social_user.save()
-                print("Updated existing SocialUser with new access token and username.")
+
+            # Redirect to the dashboard
             return HttpResponseRedirect("http://localhost:3000/dashboard")
 
-        # For unauthenticated users, create or retrieve the User and SocialUser
         try:
             social_user = SocialUser.objects.get(provider=provider, provider_id=provider_id)
-            print(f"Existing SocialUser found: {social_user}")
             user = social_user.user
             social_user.access_token = access_token
             social_user.provider_username = username
             social_user.save()
-            print("Updated existing SocialUser for unauthenticated user.")
         except SocialUser.DoesNotExist:
-            print("No existing SocialUser found; checking for User by email.")
             try:
                 user = User.objects.get(email=email)
-                print(f"Existing User found by email: {user}")
             except User.DoesNotExist:
-                print("No User found by email; creating a new User.")
                 user = User.objects.create(username=username, email=email)
-                print(f"New User created: {user}")
-
-            # Link SocialUser to the found or newly created user
             SocialUser.objects.create(
                 user=user, provider=provider, provider_id=provider_id,
                 access_token=access_token, provider_username=username
             )
-            print("Created new SocialUser and linked to User.")
             PersistentToken.objects.create(user=user)
-            print("PersistentToken created for the user.")
 
-        # Log in the user and redirect
         login(request, user, backend='django.contrib.auth.backends.ModelBackend')
-        print(f"User logged in: {user}")
+
+        # Redirect to the dashboard
         return HttpResponseRedirect("http://localhost:3000/dashboard")
